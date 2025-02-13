@@ -138,8 +138,20 @@ function productSelection(productId) {
     configuringProductStarted();
 }
 function productSelectionWithLicense(productId) {
-    (0, helpers_1.it)(`should allow to select product ${productId} accepting its license`, async function () {
-        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).select(productId);
+    (0, helpers_1.it)(`should allow to choose product ${productId}`, async function () {
+        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).chooseProduct(productId);
+    });
+    (0, helpers_1.it)(`should allow to review its license`, async function () {
+        const productSelectionWithRegistrationPage = new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page);
+        await productSelectionWithRegistrationPage.openLicense();
+        await productSelectionWithRegistrationPage.verifyLicense();
+        await productSelectionWithRegistrationPage.closeLicense();
+    });
+    (0, helpers_1.it)(`should allow to accept its license`, async function () {
+        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).acceptProductLicense();
+    });
+    (0, helpers_1.it)(`should allow to select product`, async function () {
+        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).select();
     });
     configuringProductStarted();
 }
@@ -817,12 +829,28 @@ exports.ProductSelectionPage = ProductSelectionPage;
 function LicenseAcceptable(Base) {
     return class extends Base {
         licenseAcceptanceCheckbox = () => this.page.locator("::-p-text(I have read and)");
+        licenseOpenButton = () => this.page.locator("::-p-text(license)");
+        licenseCloseButton = () => this.page.locator("::-p-text(Close)");
+        licenseText = () => this.page.locator("::-p-text(SUSE(R) End User License Agreement for Beta Software)");
         async acceptLicense() {
             await this.licenseAcceptanceCheckbox().click();
         }
-        async select(id) {
+        async openLicense() {
+            await this.licenseOpenButton().click();
+        }
+        async verifyLicense() {
+            await this.licenseText().wait();
+        }
+        async closeLicense() {
+            await this.licenseCloseButton().click();
+        }
+        async chooseProduct(id) {
             await this.choose(id);
+        }
+        async acceptProductLicense() {
             await this.acceptLicense();
+        }
+        async select() {
             await this.selectButton().click();
         }
     };
