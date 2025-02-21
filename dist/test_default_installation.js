@@ -253,6 +253,41 @@ function prepareDasdStorage() {
 
 /***/ }),
 
+/***/ "./src/checks/storage_zfcp.ts":
+/*!************************************!*\
+  !*** ./src/checks/storage_zfcp.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.prepareZfcpStorage = prepareZfcpStorage;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const select_installation_device_page_1 = __webpack_require__(/*! ../pages/select_installation_device_page */ "./src/pages/select_installation_device_page.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const storage_page_1 = __webpack_require__(/*! ../pages/storage_page */ "./src/pages/storage_page.ts");
+const zfcp_page_1 = __webpack_require__(/*! ../pages/zfcp_page */ "./src/pages/zfcp_page.ts");
+function prepareZfcpStorage() {
+    (0, helpers_1.it)("should prepare zFCP storage", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const selectInstallationDevice = new select_installation_device_page_1.SelectInstallationDevicePage(helpers_1.page);
+        const zfcp = new zfcp_page_1.ZfcpPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.changeInstallationDevice();
+        await selectInstallationDevice.prepareZfcp();
+        await zfcp.activateDevice("0.0.fa00");
+        await zfcp.activateDevice("0.0.fc00");
+        await zfcp.backToDeviceSelection();
+        await zfcp.activateMultipath();
+        await selectInstallationDevice.selectDevice(5);
+    }, 3 * 60 * 1000);
+}
+
+
+/***/ }),
+
 /***/ "./src/lib/cmdline.ts":
 /*!****************************!*\
   !*** ./src/lib/cmdline.ts ***!
@@ -913,7 +948,8 @@ class SelectInstallationDevicePage {
     deviceCheckbox = (index) => this.page.locator(`::-p-aria(Select row ${index}[role=\\"checkbox\\"])`);
     deviceRadio = (index) => this.page.locator(`::-p-aria(Select row ${index}[role=\\"radio\\"])`);
     storageTechsToggleButton = () => this.page.locator("::-p-text('storage techs')");
-    deviceType = () => this.page.locator("a[href='#/storage/dasd']");
+    deviceTypeDasdLink = () => this.page.locator("a[href='#/storage/dasd']");
+    deviceTypeZfcpLink = () => this.page.locator("a[href='#/storage/zfcp']");
     acceptButton = () => this.page.locator("button::-p-text(Accept)");
     constructor(page) {
         this.page = page;
@@ -925,11 +961,15 @@ class SelectInstallationDevicePage {
     }
     async prepareDasd() {
         await this.storageTechsToggleButton().click();
-        await this.deviceType().click();
+        await this.deviceTypeDasdLink().click();
+    }
+    async prepareZfcp() {
+        await this.storageTechsToggleButton().click();
+        await this.deviceTypeZfcpLink().click();
     }
     async selectDevice(index) {
         // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-        await (0, helpers_1.sleep)(2000);
+        await (0, helpers_1.sleep)(5000);
         await this.deviceRadio(index).click();
         await this.acceptButton().click();
     }
@@ -1093,6 +1133,51 @@ exports.UsersPage = UsersPage;
 
 /***/ }),
 
+/***/ "./src/pages/zfcp_page.ts":
+/*!********************************!*\
+  !*** ./src/pages/zfcp_page.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ZfcpPage = void 0;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+class ZfcpPage {
+    page;
+    faDisk = () => this.page.locator("tbody > tr:first-child > td:last-child > button#zfcp_controllers_actions");
+    fcDisk = () => this.page.locator("tbody > tr:last-child > td:last-child > button#zfcp_controllers_actions");
+    activateDisk = () => this.page.locator("::-p-text('Activate')");
+    backToDeviceSelectionButton = () => this.page.locator("button::-p-text(Back to device selection)");
+    enableMultipath = () => this.page.locator("::-p-text('Yes')");
+    constructor(page) {
+        this.page = page;
+    }
+    async activateDevice(channelId) {
+        let element;
+        if (channelId === "0.0.fa00")
+            element = this.faDisk();
+        else
+            element = this.fcDisk();
+        await element.click();
+        await this.activateDisk().click();
+        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
+        await (0, helpers_1.sleep)(2000);
+        await element.setTimeout(90000).wait();
+    }
+    async activateMultipath() {
+        await this.enableMultipath().setTimeout(40000).click();
+    }
+    async backToDeviceSelection() {
+        await this.backToDeviceSelectionButton().click();
+    }
+}
+exports.ZfcpPage = ZfcpPage;
+
+
+/***/ }),
+
 /***/ "./src/test_default_installation.ts":
 /*!******************************************!*\
   !*** ./src/test_default_installation.ts ***!
@@ -1109,12 +1194,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
+const commander_1 = __webpack_require__(/*! commander */ "./node_modules/commander/index.js");
 const first_user_1 = __webpack_require__(/*! ./checks/first_user */ "./src/checks/first_user.ts");
 const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/checks/registration.ts");
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
 const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
 const storage_dasd_1 = __webpack_require__(/*! ./checks/storage_dasd */ "./src/checks/storage_dasd.ts");
+const storage_zfcp_1 = __webpack_require__(/*! ./checks/storage_zfcp */ "./src/checks/storage_zfcp.ts");
 const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
 // parse options from the command line
 const options = (0, cmdline_1.parse)((cmd) => cmd
@@ -1122,7 +1209,7 @@ const options = (0, cmdline_1.parse)((cmd) => cmd
     .option("--accept-license", "Accept license for a product with license (the default is a product without license)")
     .option("--registration-code <code>", "Registration code")
     .option("--install", "Proceed to install the system (the default is not to install it)")
-    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)"));
+    .addOption(new commander_1.Option("--prepare-advanced-storage <storage-type>", "Prepare advance storage for installation").choices(["dasd", "zfcp"])));
 (0, helpers_1.test_init)(options);
 (0, login_1.logIn)(options.password);
 if (options.productId !== "none")
@@ -1134,8 +1221,10 @@ if (options.productId !== "none")
 if (options.registrationCode)
     (0, registration_1.enterRegistration)(options.registrationCode);
 (0, first_user_1.createFirstUser)(options.password);
-if (options.dasd)
+if (options.prepareAdvancedStorage === "dasd")
     (0, storage_dasd_1.prepareDasdStorage)();
+else if (options.prepareAdvancedStorage === "zfcp")
+    (0, storage_zfcp_1.prepareZfcpStorage)();
 if (options.install)
     (0, installation_1.performInstallation)();
 

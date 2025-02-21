@@ -7,6 +7,7 @@
 
 import { parse } from "./lib/cmdline";
 import { test_init } from "./lib/helpers";
+import { Option } from "commander";
 
 import { createFirstUser } from "./checks/first_user";
 import { enterRegistration } from "./checks/registration";
@@ -14,6 +15,7 @@ import { logIn } from "./checks/login";
 import { performInstallation } from "./checks/installation";
 import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
 import { prepareDasdStorage } from "./checks/storage_dasd";
+import { prepareZfcpStorage } from "./checks/storage_zfcp";
 import { setupRootPassword } from "./checks/root_authentication";
 
 // parse options from the command line
@@ -26,7 +28,12 @@ const options = parse((cmd) =>
     )
     .option("--registration-code <code>", "Registration code")
     .option("--install", "Proceed to install the system (the default is not to install it)")
-    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)"),
+    .addOption(
+      new Option(
+        "--prepare-advanced-storage <storage-type>",
+        "Prepare advance storage for installation",
+      ).choices(["dasd", "zfcp"]),
+    ),
 );
 
 test_init(options);
@@ -37,5 +44,6 @@ if (options.productId !== "none")
 setupRootPassword(options.rootPassword);
 if (options.registrationCode) enterRegistration(options.registrationCode);
 createFirstUser(options.password);
-if (options.dasd) prepareDasdStorage();
+if (options.prepareAdvancedStorage === "dasd") prepareDasdStorage();
+else if (options.prepareAdvancedStorage === "zfcp") prepareZfcpStorage();
 if (options.install) performInstallation();
