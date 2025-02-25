@@ -2,40 +2,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/checks/first_user.ts":
-/*!**********************************!*\
-  !*** ./src/checks/first_user.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createFirstUser = createFirstUser;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const create_user_page_1 = __webpack_require__(/*! ../pages/create_user_page */ "./src/pages/create_user_page.ts");
-const users_page_1 = __webpack_require__(/*! ../pages/users_page */ "./src/pages/users_page.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-function createFirstUser(password) {
-    (0, helpers_1.it)("should create first user", async function () {
-        const users = new users_page_1.UsersPage(helpers_1.page);
-        const createFirstUser = new create_user_page_1.CreateFirstUserPage(helpers_1.page);
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        await sidebar.goToUsers();
-        await users.defineAUserNow();
-        await createFirstUser.fillFullName("Bernhard M. Wiedemann");
-        await createFirstUser.fillUserName("bernhard");
-        await createFirstUser.fillPassword(password);
-        await createFirstUser.fillPasswordConfirmation(password);
-        await createFirstUser.accept();
-        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-        await (0, helpers_1.sleep)(2000);
-    });
-}
-
-
-/***/ }),
-
 /***/ "./src/checks/installation.ts":
 /*!************************************!*\
   !*** ./src/checks/installation.ts ***!
@@ -142,6 +108,48 @@ function productSelectionWithLicense(productId) {
         await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).select(productId);
     });
     configuringProductStarted();
+}
+
+
+/***/ }),
+
+/***/ "./src/checks/registration.ts":
+/*!************************************!*\
+  !*** ./src/checks/registration.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.enterRegistration = enterRegistration;
+exports.enterRegistrationWithoutAlert = enterRegistrationWithoutAlert;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
+const registration_enter_code_page_1 = __webpack_require__(/*! ../pages/registration_enter_code_page */ "./src/pages/registration_enter_code_page.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+function enterRegistration(code) {
+    (0, helpers_1.it)("should allow setting registration", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const registration = new registration_enter_code_page_1.RegistrationEnterCodePage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await registration.fillCode(code);
+        await registration.register();
+    });
+    (0, helpers_1.it)("should not display option to register in Overview", async function () {
+        await new overview_page_1.OverviewPage(helpers_1.page).waitWarningAlertToDisappear();
+    });
+}
+function enterRegistrationWithoutAlert(code) {
+    (0, helpers_1.it)("should allow setting registration", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const registration = new registration_enter_code_page_1.RegistrationEnterCodePage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await registration.fillCode(code);
+        await registration.register();
+        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
+        await (0, helpers_1.sleep)(5000);
+    });
 }
 
 
@@ -828,6 +836,35 @@ exports.ProductSelectionWithRegistrationPage = ProductSelectionWithRegistrationP
 
 /***/ }),
 
+/***/ "./src/pages/registration_enter_code_page.ts":
+/*!***************************************************!*\
+  !*** ./src/pages/registration_enter_code_page.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RegistrationEnterCodePage = void 0;
+class RegistrationEnterCodePage {
+    page;
+    codeInput = () => this.page.locator("input#key");
+    registertButton = () => this.page.locator("button[form='productRegistration']");
+    constructor(page) {
+        this.page = page;
+    }
+    async fillCode(code) {
+        await this.codeInput().fill(code);
+    }
+    async register() {
+        await this.registertButton().click();
+    }
+}
+exports.RegistrationEnterCodePage = RegistrationEnterCodePage;
+
+
+/***/ }),
+
 /***/ "./src/pages/root_password_page.ts":
 /*!*****************************************!*\
   !*** ./src/pages/root_password_page.ts ***!
@@ -1074,10 +1111,10 @@ exports.UsersPage = UsersPage;
 
 /***/ }),
 
-/***/ "./src/test_default_installation_root_auth_later.ts":
-/*!**********************************************************!*\
-  !*** ./src/test_default_installation_root_auth_later.ts ***!
-  \**********************************************************/
+/***/ "./src/test_default_installation_set_root_pw_later.ts":
+/*!************************************************************!*\
+  !*** ./src/test_default_installation_set_root_pw_later.ts ***!
+  \************************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1089,27 +1126,31 @@ exports.UsersPage = UsersPage;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
-const commander_1 = __webpack_require__(/*! commander */ "./node_modules/commander/index.js");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
+const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/checks/registration.ts");
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
-const first_user_1 = __webpack_require__(/*! ./checks/first_user */ "./src/checks/first_user.ts");
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
-const storage_dasd_1 = __webpack_require__(/*! ./checks/storage_dasd */ "./src/checks/storage_dasd.ts");
 const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
+const storage_dasd_1 = __webpack_require__(/*! ./checks/storage_dasd */ "./src/checks/storage_dasd.ts");
 const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
 // parse options from the command line
 const options = (0, cmdline_1.parse)((cmd) => cmd
-    .addOption(new commander_1.Option("--product-id <id>", "Product id to select a product to install")
-    .choices(Object.keys(helpers_1.ProductId))
-    .default("none"))
+    .option("--product-id <id>", "Product id to select a product to install", "none")
+    .option("--accept-license", "Accept license for a product with license (the default is a product without license)")
+    .option("--registration-code <code>", "Registration code")
     .option("--install", "Proceed to install the system (the default is not to install it)")
-    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)"));
+    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)")
+    .option("--devgroup", "Features ahead of released group"));
 (0, helpers_1.test_init)(options);
 (0, login_1.logIn)(options.password);
 if (options.productId !== "none")
-    (0, product_selection_1.productSelectionByName)(helpers_1.ProductId[options.productId]);
-(0, first_user_1.createFirstUser)(options.password);
-(0, root_authentication_1.setupRootPasswordAtALaterStage)(options.password);
+    if (options.acceptLicense)
+        (0, product_selection_1.productSelectionWithLicense)(options.productId);
+    else
+        (0, product_selection_1.productSelection)(options.productId);
+(0, root_authentication_1.createFisrtUserandsetupRootPassword)(options.rootPassword);
+if (options.registrationCode)
+    (0, registration_1.enterRegistrationWithoutAlert)(options.registrationCode);
 if (options.dasd)
     (0, storage_dasd_1.prepareDasdStorage)();
 if (options.install)
@@ -1500,7 +1541,7 @@ module.exports = require("zlib");
 /******/ 	// the startup function
 /******/ 	__webpack_require__.x = () => {
 /******/ 		// Load entry module and return exports
-/******/ 		var __webpack_exports__ = __webpack_require__.O(undefined, ["vendor"], () => (__webpack_require__(__webpack_require__.s = "./src/test_default_installation_root_auth_later.ts")))
+/******/ 		var __webpack_exports__ = __webpack_require__.O(undefined, ["vendor"], () => (__webpack_require__(__webpack_require__.s = "./src/test_default_installation_set_root_pw_later.ts")))
 /******/ 		__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 		return __webpack_exports__;
 /******/ 	};
@@ -1604,7 +1645,7 @@ module.exports = require("zlib");
 /******/ 		// object to store loaded chunks
 /******/ 		// "1" means "loaded", otherwise not loaded yet
 /******/ 		var installedChunks = {
-/******/ 			"test_default_installation_root_auth_later": 1
+/******/ 			"test_default_installation_set_root_pw_later": 1
 /******/ 		};
 /******/ 		
 /******/ 		__webpack_require__.O.require = (chunkId) => (installedChunks[chunkId]);
@@ -1656,4 +1697,4 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=test_default_installation_root_auth_later.js.map
+//# sourceMappingURL=test_default_installation_set_root_pw_later.js.map

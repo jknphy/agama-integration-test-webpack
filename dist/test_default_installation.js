@@ -157,6 +157,7 @@ function productSelectionWithLicense(productId) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enterRegistration = enterRegistration;
+exports.enterRegistrationWithoutAlert = enterRegistrationWithoutAlert;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const registration_enter_code_page_1 = __webpack_require__(/*! ../pages/registration_enter_code_page */ "./src/pages/registration_enter_code_page.ts");
@@ -173,6 +174,17 @@ function enterRegistration(code) {
         await new overview_page_1.OverviewPage(helpers_1.page).waitWarningAlertToDisappear();
     });
 }
+function enterRegistrationWithoutAlert(code) {
+    (0, helpers_1.it)("should allow setting registration", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const registration = new registration_enter_code_page_1.RegistrationEnterCodePage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await registration.fillCode(code);
+        await registration.register();
+        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
+        await (0, helpers_1.sleep)(5000);
+    });
+}
 
 
 /***/ }),
@@ -187,10 +199,12 @@ function enterRegistration(code) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setupRootPasswordAtALaterStage = setupRootPasswordAtALaterStage;
+exports.createFisrtUserandsetupRootPassword = createFisrtUserandsetupRootPassword;
 exports.setupRootPassword = setupRootPassword;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const setup_root_user_authentication_page_1 = __webpack_require__(/*! ../pages/setup_root_user_authentication_page */ "./src/pages/setup_root_user_authentication_page.ts");
 const root_password_page_1 = __webpack_require__(/*! ../pages/root_password_page */ "./src/pages/root_password_page.ts");
+const create_user_page_1 = __webpack_require__(/*! ../pages/create_user_page */ "./src/pages/create_user_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
 const users_page_1 = __webpack_require__(/*! ../pages/users_page */ "./src/pages/users_page.ts");
 function setupRootPasswordAtALaterStage(password) {
@@ -203,6 +217,28 @@ function setupRootPasswordAtALaterStage(password) {
         await setARootPassword.fillPassword(password);
         await setARootPassword.fillPasswordConfirmation(password);
         await setARootPassword.confirm();
+        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
+        await (0, helpers_1.sleep)(2000);
+    });
+}
+function createFisrtUserandsetupRootPassword(password) {
+    (0, helpers_1.it)("should create first user and allow setting the root password", async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const users = new users_page_1.UsersPage(helpers_1.page);
+        const createFirstUser = new create_user_page_1.CreateFirstUserPage(helpers_1.page);
+        const setARootPassword = new root_password_page_1.SetARootPasswordPage(helpers_1.page);
+        await sidebar.goToUsers();
+        await users.defineAUserNow();
+        await createFirstUser.fillFullName("Bernhard M. Wiedemann");
+        await createFirstUser.fillUserName("bernhard");
+        await createFirstUser.fillPassword(password);
+        await createFirstUser.fillPasswordConfirmation(password);
+        await createFirstUser.accept();
+        await users.editARootPassword();
+        await setARootPassword.useRootPassword();
+        await setARootPassword.fillPassword(password);
+        await setARootPassword.fillPasswordConfirmation(password);
+        await setARootPassword.accept();
         // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
         await (0, helpers_1.sleep)(2000);
     });
@@ -877,7 +913,9 @@ class SetARootPasswordPage {
     page;
     passwordInput = () => this.page.locator("input#password");
     passwordConfirmationInput = () => this.page.locator("input#passwordConfirmation");
+    rootAuthMethods = () => this.page.locator("label[class='pf-v6-c-switch'] > input[type='checkbox']");
     confirmText = () => this.page.locator("button::-p-text(Confirm)");
+    acceptText = () => this.page.locator("button::-p-text(Accept)");
     constructor(page) {
         this.page = page;
     }
@@ -889,6 +927,12 @@ class SetARootPasswordPage {
     }
     async confirm() {
         await this.confirmText().click();
+    }
+    async accept() {
+        await this.acceptText().click();
+    }
+    async useRootPassword() {
+        await this.rootAuthMethods().click();
     }
 }
 exports.SetARootPasswordPage = SetARootPasswordPage;
@@ -1078,6 +1122,8 @@ class UsersPage {
     page;
     firstUserLink = () => this.page.locator("a[href='#/users/first']");
     setAPasswordButton = () => this.page.locator("button::-p-text(Set a password)");
+    editARootButton = () => this.page.locator("a[href='#/users/root/edit']");
+    editAFirstButton = () => this.page.locator("a[href='#/users/first/edit']");
     constructor(page) {
         this.page = page;
     }
@@ -1086,6 +1132,12 @@ class UsersPage {
     }
     async setAPassword() {
         await this.setAPasswordButton().click();
+    }
+    async editARootPassword() {
+        await this.editARootButton().click();
+    }
+    async editAFirstPassword() {
+        await this.editAFirstButton().click();
     }
 }
 exports.UsersPage = UsersPage;

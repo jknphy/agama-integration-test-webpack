@@ -1,6 +1,7 @@
 import { it, page, sleep } from "../lib/helpers";
 import { SetupRootUserAuthenticationPage } from "../pages/setup_root_user_authentication_page";
 import { SetARootPasswordPage } from "../pages/root_password_page";
+import { CreateFirstUserPage } from "../pages/create_user_page";
 import { SidebarPage } from "../pages/sidebar_page";
 import { UsersPage } from "../pages/users_page";
 
@@ -15,6 +16,32 @@ export function setupRootPasswordAtALaterStage(password: string) {
     await setARootPassword.fillPassword(password);
     await setARootPassword.fillPasswordConfirmation(password);
     await setARootPassword.confirm();
+    // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
+    await sleep(2000);
+  });
+}
+
+export function createFisrtUserandsetupRootPassword(password: string) {
+  it("should create first user and allow setting the root password", async function () {
+    const sidebar = new SidebarPage(page);
+    const users = new UsersPage(page);
+    const createFirstUser = new CreateFirstUserPage(page);
+    const setARootPassword = new SetARootPasswordPage(page);
+
+    await sidebar.goToUsers();
+
+    await users.defineAUserNow();
+    await createFirstUser.fillFullName("Bernhard M. Wiedemann");
+    await createFirstUser.fillUserName("bernhard");
+    await createFirstUser.fillPassword(password);
+    await createFirstUser.fillPasswordConfirmation(password);
+    await createFirstUser.accept();
+
+    await users.editARootPassword();
+    await setARootPassword.useRootPassword();
+    await setARootPassword.fillPassword(password);
+    await setARootPassword.fillPasswordConfirmation(password);
+    await setARootPassword.accept();
     // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
     await sleep(2000);
   });
