@@ -6,7 +6,11 @@ export class SetARootPasswordPage {
   private readonly passwordConfirmationInput = () =>
     this.page.locator("input#passwordConfirmation");
 
+  private readonly rootAuthMethods = () =>
+    this.page.locator("label[class='pf-v6-c-switch'] > input[type='checkbox']");
+
   private readonly confirmText = () => this.page.locator("button::-p-text(Confirm)");
+  private readonly acceptText = () => this.page.locator("button::-p-text(Accept)");
 
   constructor(page: Page) {
     this.page = page;
@@ -22,5 +26,13 @@ export class SetARootPasswordPage {
 
   async confirm() {
     await this.confirmText().click();
+  }
+
+  async accept() {
+    await this.acceptText().click();
+  }
+
+  async useRootPassword() {
+    await this.rootAuthMethods().click();
   }
 }
