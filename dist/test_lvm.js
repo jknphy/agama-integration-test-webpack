@@ -712,6 +712,7 @@ class StoragePage {
     editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
+    decryptDestructiveActionsText = () => this.page.locator("::-p-text(Check the 31 planned actions)");
     constructor(page) {
         this.page = page;
     }
@@ -726,6 +727,9 @@ class StoragePage {
     }
     async manageDasd() {
         await this.manageDasdLink().click();
+    }
+    async verifyDecryptDestructiveActions() {
+        await this.decryptDestructiveActionsText().wait();
     }
 }
 exports.StoragePage = StoragePage;

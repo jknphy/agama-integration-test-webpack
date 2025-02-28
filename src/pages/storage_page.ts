@@ -11,6 +11,9 @@ export class StoragePage {
 
   private readonly manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
 
+  private readonly decryptDestructiveActionsText = () =>
+    this.page.locator("::-p-text(Check the 31 planned actions)");
+
   constructor(page: Page) {
     this.page = page;
   }
@@ -29,5 +32,9 @@ export class StoragePage {
 
   async manageDasd() {
     await this.manageDasdLink().click();
+  }
+
+  async verifyDecryptDestructiveActions() {
+    await this.decryptDestructiveActionsText().wait();
   }
 }
