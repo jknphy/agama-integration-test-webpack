@@ -9,6 +9,12 @@ export class StoragePage {
   private readonly encryptionIsEnabledText = () =>
     this.page.locator("::-p-text(Encryption is enabled)");
 
+  private readonly decryptDestructiveActionsText = () =>
+    this.page.locator("::-p-text(Check the 31 planned actions)");
+
+  private readonly skipDestructiveActionsText = () =>
+    this.page.locator("::-p-text(Check the 16 planned actions)");
+
   constructor(page: Page) {
     this.page = page;
   }
@@ -23,5 +29,13 @@ export class StoragePage {
 
   async verifyEncryptionEnabled() {
     await this.encryptionIsEnabledText().wait();
+  }
+
+  async verifyDecryptDestructiveActions() {
+    await this.decryptDestructiveActionsText().wait();
+  }
+
+  async verifySkipDestructiveActions() {
+    await this.skipDestructiveActionsText().wait();
   }
 }
