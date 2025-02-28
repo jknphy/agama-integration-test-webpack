@@ -9,6 +9,9 @@ export class StoragePage {
   private readonly encryptionIsEnabledText = () =>
     this.page.locator("::-p-text(Encryption is enabled)");
 
+  private readonly destructiveActionsText = () =>
+    this.page.locator("h4::p-text(There are 6 destructive actions planned)");
+
   constructor(page: Page) {
     this.page = page;
   }
@@ -23,5 +26,9 @@ export class StoragePage {
 
   async verifyEncryptionEnabled() {
     await this.encryptionIsEnabledText().wait();
+  }
+
+  async verifyDecryptDestructiveActions() {
+    await this.destructiveActionsText().wait();
   }
 }
