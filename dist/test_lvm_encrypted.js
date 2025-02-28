@@ -725,6 +725,8 @@ class StoragePage {
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
     ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
+    destructiveActionsList = () => this.page.locator("::-p-text(Check)");
+    destructiveActionText = (name) => this.page.locator(`::-p-text(Delete ${name})`);
     constructor(page) {
         this.page = page;
     }
@@ -745,6 +747,12 @@ class StoragePage {
     }
     async waitForElement(element, timeout) {
         await this.page.locator(element).setTimeout(timeout).wait();
+    }
+    async expandDestructiveActionsList() {
+        await this.destructiveActionsList().click();
+    }
+    async verifyDestructiveAction(action) {
+        await this.destructiveActionText(action).wait();
     }
 }
 exports.StoragePage = StoragePage;

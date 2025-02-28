@@ -105,6 +105,27 @@ function logIn(password) {
 
 /***/ }),
 
+/***/ "./src/checks/overview.ts":
+/*!********************************!*\
+  !*** ./src/checks/overview.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ensureOverviewVisible = ensureOverviewVisible;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+function ensureOverviewVisible() {
+    (0, helpers_1.it)("should display overview", async function () {
+        await new sidebar_page_1.SidebarPage(helpers_1.page).waitOverviewVisible(40000);
+    });
+}
+
+
+/***/ }),
+
 /***/ "./src/checks/product_selection.ts":
 /*!*****************************************!*\
   !*** ./src/checks/product_selection.ts ***!
@@ -120,20 +141,16 @@ exports.productSelectionWithLicense = productSelectionWithLicense;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const configuring_product_page_1 = __webpack_require__(/*! ../pages/configuring_product_page */ "./src/pages/configuring_product_page.ts");
 const product_selection_page_1 = __webpack_require__(/*! ../pages/product_selection_page */ "./src/pages/product_selection_page.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-function ensureProductConfigured() {
+function ensureProductConfigurationStarted() {
     (0, helpers_1.it)("should start configuring the product", async function () {
         await new configuring_product_page_1.ConfiguringProductPage(helpers_1.page).wait();
-    });
-    (0, helpers_1.it)("should finish configuring the product", async function () {
-        await new sidebar_page_1.SidebarPage(helpers_1.page).waitOverviewVisible(40000);
     });
 }
 function productSelectionByName(productName) {
     (0, helpers_1.it)(`should allow to select product ${productName}`, async function () {
         await new product_selection_page_1.ProductSelectionPage(helpers_1.page).selectByName(productName);
     });
-    ensureProductConfigured();
+    ensureProductConfigurationStarted();
 }
 function productSelection(productId) {
     (0, helpers_1.it)(`should allow to select product ${productId}`, async function () {
@@ -141,7 +158,7 @@ function productSelection(productId) {
         await productSelectionPage.choose(productId);
         await productSelectionPage.select();
     });
-    ensureProductConfigured();
+    ensureProductConfigurationStarted();
 }
 function productSelectionWithLicense(productId) {
     (0, helpers_1.it)(`should allow to choose product ${productId}`, async function () {
@@ -159,7 +176,7 @@ function productSelectionWithLicense(productId) {
     (0, helpers_1.it)(`should allow to select product`, async function () {
         await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).select();
     });
-    ensureProductConfigured();
+    ensureProductConfigurationStarted();
 }
 
 
@@ -1076,6 +1093,8 @@ class StoragePage {
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
     ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
+    destructiveActionsList = () => this.page.locator("::-p-text(Check)");
+    destructiveActionText = (name) => this.page.locator(`::-p-text(Delete ${name})`);
     constructor(page) {
         this.page = page;
     }
@@ -1096,6 +1115,12 @@ class StoragePage {
     }
     async waitForElement(element, timeout) {
         await this.page.locator(element).setTimeout(timeout).wait();
+    }
+    async expandDestructiveActionsList() {
+        await this.destructiveActionsList().click();
+    }
+    async verifyDestructiveAction(action) {
+        await this.destructiveActionText(action).wait();
     }
 }
 exports.StoragePage = StoragePage;
@@ -1202,6 +1227,7 @@ const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/c
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
 const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
+const overview_1 = __webpack_require__(/*! ./checks/overview */ "./src/checks/overview.ts");
 const storage_dasd_1 = __webpack_require__(/*! ./checks/storage_dasd */ "./src/checks/storage_dasd.ts");
 const storage_zfcp_1 = __webpack_require__(/*! ./checks/storage_zfcp */ "./src/checks/storage_zfcp.ts");
 // parse options from the command line
@@ -1218,6 +1244,7 @@ if (options.productId !== "none")
         (0, product_selection_1.productSelectionWithLicense)(options.productId);
     else
         (0, product_selection_1.productSelection)(options.productId);
+(0, overview_1.ensureOverviewVisible)();
 if (options.registrationCode)
     (0, registration_1.enterRegistration)(options.registrationCode);
 (0, first_user_1.createFirstUser)(options.password);

@@ -8,13 +8,11 @@
 import { parse } from "./lib/cmdline";
 import { test_init } from "./lib/helpers";
 
-import { createFirstUser } from "./checks/first_user";
-import { enterRegistration } from "./checks/registration";
 import { logIn } from "./checks/login";
-import { performInstallation } from "./checks/installation";
+import { decryptDevice } from "./checks/decryption";
+import { verifyDecryptDestructiveActions } from "./checks/storage_result_destructive_actions_planned";
 import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
-import { prepareDasdStorage } from "./checks/storage_dasd";
-import { setupMandatoryRootAuth } from "./checks/root_authentication";
+import { ensureOverviewVisible } from "./checks/overview";
 
 // parse options from the command line
 const options = parse((cmd) =>
@@ -26,7 +24,7 @@ const options = parse((cmd) =>
     )
     .option("--registration-code <code>", "Registration code")
     .option("--install", "Proceed to install the system (the default is not to install it)")
-    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)"),
+    .option("--decrypt-password <password>", "Password to decrypt an existing encrypted partition"),
 );
 
 test_init(options);
@@ -34,8 +32,6 @@ logIn(options.password);
 if (options.productId !== "none")
   if (options.acceptLicense) productSelectionWithLicense(options.productId);
   else productSelection(options.productId);
-setupMandatoryRootAuth(options.rootPassword);
-if (options.registrationCode) enterRegistration(options.registrationCode);
-createFirstUser(options.password);
-if (options.dasd) prepareDasdStorage();
-if (options.install) performInstallation();
+decryptDevice(options.decryptPassword);
+ensureOverviewVisible();
+verifyDecryptDestructiveActions();
