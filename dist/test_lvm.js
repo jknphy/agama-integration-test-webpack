@@ -612,7 +612,8 @@ class SelectInstallationDevicePage {
     deviceCheckbox = (index) => this.page.locator(`::-p-aria(Select row ${index}[role=\\"checkbox\\"])`);
     deviceRadio = (index) => this.page.locator(`::-p-aria(Select row ${index}[role=\\"radio\\"])`);
     storageTechsToggleButton = () => this.page.locator("::-p-text('storage techs')");
-    deviceType = () => this.page.locator("a[href='#/storage/dasd']");
+    deviceTypeDasdLink = () => this.page.locator("a[href='#/storage/dasd']");
+    deviceTypeZfcpLink = () => this.page.locator("a[href='#/storage/zfcp']");
     acceptButton = () => this.page.locator("button::-p-text(Accept)");
     constructor(page) {
         this.page = page;
@@ -624,11 +625,15 @@ class SelectInstallationDevicePage {
     }
     async prepareDasd() {
         await this.storageTechsToggleButton().click();
-        await this.deviceType().click();
+        await this.deviceTypeDasdLink().click();
+    }
+    async prepareZfcp() {
+        await this.storageTechsToggleButton().click();
+        await this.deviceTypeZfcpLink().click();
     }
     async selectDevice(index) {
         // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-        await (0, helpers_1.sleep)(2000);
+        await (0, helpers_1.sleep)(5000);
         await this.deviceRadio(index).click();
         await this.acceptButton().click();
     }
