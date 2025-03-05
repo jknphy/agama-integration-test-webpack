@@ -2,38 +2,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/checks/encryption.ts":
-/*!**********************************!*\
-  !*** ./src/checks/encryption.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.enableEncryption = enableEncryption;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const encryption_settings_page_1 = __webpack_require__(/*! ../pages/encryption_settings_page */ "./src/pages/encryption_settings_page.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-const storage_page_1 = __webpack_require__(/*! ../pages/storage_page */ "./src/pages/storage_page.ts");
-function enableEncryption(password) {
-    (0, helpers_1.it)("should enable encryption", async function () {
-        const storage = new storage_page_1.StoragePage(helpers_1.page);
-        const encryptionSettings = new encryption_settings_page_1.EncryptionSettingsPage(helpers_1.page);
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        await sidebar.goToStorage();
-        await storage.editEncryption();
-        await encryptionSettings.encryptTheSystem();
-        await encryptionSettings.fillPassword(password);
-        await encryptionSettings.fillPasswordConfirmation(password);
-        await encryptionSettings.accept();
-        await storage.verifyEncryptionEnabled();
-    });
-}
-
-
-/***/ }),
-
 /***/ "./src/checks/installation.ts":
 /*!************************************!*\
   !*** ./src/checks/installation.ts ***!
@@ -97,6 +65,49 @@ function logIn(password) {
         const loginAsRoot = new login_as_root_page_1.LoginAsRootPage(helpers_1.page);
         await loginAsRoot.fillPassword(password);
         await loginAsRoot.logIn();
+    });
+}
+
+
+/***/ }),
+
+/***/ "./src/checks/software_selection.ts":
+/*!******************************************!*\
+  !*** ./src/checks/software_selection.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.selectSinglePattern = selectSinglePattern;
+exports.selectPatterns = selectPatterns;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const software_page_1 = __webpack_require__(/*! ../pages/software_page */ "./src/pages/software_page.ts");
+const software_selection_page_1 = __webpack_require__(/*! ../pages/software_selection_page */ "./src/pages/software_selection_page.ts");
+function selectSinglePattern(pattern) {
+    (0, helpers_1.it)(`should select pattern ${pattern}`, async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const software = new software_page_1.SoftwarePage(helpers_1.page);
+        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
+        await sidebar.goToSoftware();
+        await software.changeSelection();
+        await softwareSelection.selectPattern(pattern);
+        await softwareSelection.close();
+    });
+}
+function selectPatterns(patterns) {
+    (0, helpers_1.it)(`should select patterns ${patterns.join(", ")}`, async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const software = new software_page_1.SoftwarePage(helpers_1.page);
+        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
+        await sidebar.goToSoftware();
+        await software.changeSelection();
+        for (const pattern of patterns) {
+            await softwareSelection.selectPattern(pattern);
+        }
+        await softwareSelection.close();
     });
 }
 
@@ -479,43 +490,6 @@ exports.CongratulationPage = CongratulationPage;
 
 /***/ }),
 
-/***/ "./src/pages/encryption_settings_page.ts":
-/*!***********************************************!*\
-  !*** ./src/pages/encryption_settings_page.ts ***!
-  \***********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.EncryptionSettingsPage = void 0;
-class EncryptionSettingsPage {
-    page;
-    encryptTheSystemToggle = () => this.page.locator("::-p-text(Encrypt the system)");
-    passwordInput = () => this.page.locator("#password");
-    passwordConfirmationInput = () => this.page.locator("#passwordConfirmation");
-    acceptButton = () => this.page.locator("button::-p-text(Accept)");
-    constructor(page) {
-        this.page = page;
-    }
-    async encryptTheSystem() {
-        await this.encryptTheSystemToggle().click();
-    }
-    async fillPassword(password) {
-        await this.passwordInput().fill(password);
-    }
-    async fillPasswordConfirmation(password) {
-        await this.passwordConfirmationInput().fill(password);
-    }
-    async accept() {
-        await this.acceptButton().click();
-    }
-}
-exports.EncryptionSettingsPage = EncryptionSettingsPage;
-
-
-/***/ }),
-
 /***/ "./src/pages/login_as_root_page.ts":
 /*!*****************************************!*\
   !*** ./src/pages/login_as_root_page.ts ***!
@@ -634,54 +608,82 @@ exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
 
 /***/ }),
 
-/***/ "./src/pages/storage_page.ts":
-/*!***********************************!*\
-  !*** ./src/pages/storage_page.ts ***!
-  \***********************************/
+/***/ "./src/pages/software_page.ts":
+/*!************************************!*\
+  !*** ./src/pages/software_page.ts ***!
+  \************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.StoragePage = void 0;
-class StoragePage {
+exports.SoftwarePage = void 0;
+class SoftwarePage {
     page;
-    changeInstallationDeviceButton = () => this.page.locator("a[href='#/storage/target-device']");
-    editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
-    encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
-    manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
-    ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
+    changeSelectionButton = () => this.page.locator("::-p-text(Change selection)");
     constructor(page) {
         this.page = page;
     }
-    async changeInstallationDevice() {
-        await this.changeInstallationDeviceButton().click();
-    }
-    async editEncryption() {
-        await this.editEncryptionButton().click();
-    }
-    async verifyEncryptionEnabled() {
-        await this.encryptionIsEnabledText().wait();
-    }
-    async manageDasd() {
-        await this.manageDasdLink().click();
-    }
-    async activateZfcp() {
-        await this.ActivateZfcpLink().click();
-    }
-    async waitForElement(element, timeout) {
-        await this.page.locator(element).setTimeout(timeout).wait();
+    async changeSelection() {
+        await this.changeSelectionButton().click();
     }
 }
-exports.StoragePage = StoragePage;
+exports.SoftwarePage = SoftwarePage;
 
 
 /***/ }),
 
-/***/ "./src/test_encrypted.ts":
-/*!*******************************!*\
-  !*** ./src/test_encrypted.ts ***!
-  \*******************************/
+/***/ "./src/pages/software_selection_page.ts":
+/*!**********************************************!*\
+  !*** ./src/pages/software_selection_page.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SoftwareSelectionPage = void 0;
+class SoftwareSelectionPage {
+    page;
+    patternCheckbox = (pattern) => this.page.locator(`input[type=checkbox][rowid=${pattern}-title]`);
+    closeButton = () => this.page.locator("::-p-text(Close)");
+    constructor(page) {
+        this.page = page;
+    }
+    // SELinux was auto selected, click will unselect it.
+    async clickIfNotChecked(selector, pattern) {
+        const checkbox = await this.page.$(selector);
+        const isChecked = await checkbox.evaluate((cb) => cb.checked);
+        if (!isChecked) {
+            await checkbox.click();
+        }
+        else {
+            console.log(`Pattern was auto selected: ${pattern}`);
+        }
+    }
+    async selectPattern(pattern) {
+        const checkboxSelector = `input[type=checkbox][rowid=${pattern}-title]`;
+        const checkbox = await this.patternCheckbox(pattern).waitHandle();
+        await checkbox.scrollIntoView();
+        await this.clickIfNotChecked(checkboxSelector, pattern);
+        // Wait for the checkbox to be checked.
+        await this.page.waitForSelector(`${checkboxSelector}:checked`);
+        // This is useful when some patterns are not available on some arches.
+        console.log(`Selected pattern: ${pattern}`);
+    }
+    async close() {
+        await this.closeButton().click();
+    }
+}
+exports.SoftwareSelectionPage = SoftwareSelectionPage;
+
+
+/***/ }),
+
+/***/ "./src/test_software_pattern.ts":
+/*!**************************************!*\
+  !*** ./src/test_software_pattern.ts ***!
+  \**************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -694,14 +696,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
-const encryption_1 = __webpack_require__(/*! ./checks/encryption */ "./src/checks/encryption.ts");
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
+const software_selection_1 = __webpack_require__(/*! ./checks/software_selection */ "./src/checks/software_selection.ts");
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
 // parse options from the command line
-const options = (0, cmdline_1.parse)((cmd) => cmd.option("--install", "Proceed to install the system (the default is not to install it)"));
+const options = (0, cmdline_1.parse)((cmd) => cmd
+    .option("--patterns <pattern>...", "comma-separated list of patterns", cmdline_1.commaSeparatedList)
+    .option("--install", "Proceed to install the system (the default is not to install it)"));
 (0, helpers_1.test_init)(options);
 (0, login_1.logIn)(options.password);
-(0, encryption_1.enableEncryption)(options.password);
+if (options.patterns)
+    (0, software_selection_1.selectPatterns)(options.patterns);
 if (options.install)
     (0, installation_1.performInstallation)();
 
@@ -1090,7 +1095,7 @@ module.exports = require("zlib");
 /******/ 	// the startup function
 /******/ 	__webpack_require__.x = () => {
 /******/ 		// Load entry module and return exports
-/******/ 		var __webpack_exports__ = __webpack_require__.O(undefined, ["vendor"], () => (__webpack_require__(__webpack_require__.s = "./src/test_encrypted.ts")))
+/******/ 		var __webpack_exports__ = __webpack_require__.O(undefined, ["vendor"], () => (__webpack_require__(__webpack_require__.s = "./src/test_software_pattern.ts")))
 /******/ 		__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 		return __webpack_exports__;
 /******/ 	};
@@ -1194,7 +1199,7 @@ module.exports = require("zlib");
 /******/ 		// object to store loaded chunks
 /******/ 		// "1" means "loaded", otherwise not loaded yet
 /******/ 		var installedChunks = {
-/******/ 			"test_encrypted": 1
+/******/ 			"test_software_pattern": 1
 /******/ 		};
 /******/ 		
 /******/ 		__webpack_require__.O.require = (chunkId) => (installedChunks[chunkId]);
@@ -1246,4 +1251,4 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=test_encrypted.js.map
+//# sourceMappingURL=test_software_pattern.js.map
