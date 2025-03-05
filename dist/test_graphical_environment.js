@@ -81,8 +81,10 @@ function logIn(password) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.selectSinglePattern = selectSinglePattern;
+exports.selectPatterns = selectPatterns;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const software_page_1 = __webpack_require__(/*! ../pages/software_page */ "./src/pages/software_page.ts");
 const software_selection_page_1 = __webpack_require__(/*! ../pages/software_selection_page */ "./src/pages/software_selection_page.ts");
 function selectSinglePattern(pattern) {
@@ -94,6 +96,22 @@ function selectSinglePattern(pattern) {
         await software.changeSelection();
         await softwareSelection.selectPattern(pattern);
         await softwareSelection.close();
+    });
+}
+function selectPatterns(patterns) {
+    (0, helpers_1.it)(`should select patterns ${patterns.join(", ")}`, async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const software = new software_page_1.SoftwarePage(helpers_1.page);
+        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
+        const overview = new overview_page_1.OverviewPage(helpers_1.page);
+        await sidebar.goToSoftware();
+        await software.changeSelection();
+        for (const pattern of patterns) {
+            await softwareSelection.selectPattern(pattern);
+        }
+        await softwareSelection.close();
+        await sidebar.goToOverview();
+        await overview.takeScreenshot();
     });
 }
 
@@ -505,12 +523,14 @@ exports.LoginAsRootPage = LoginAsRootPage;
 /*!************************************!*\
   !*** ./src/pages/overview_page.ts ***!
   \************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OverviewPage = void 0;
+const fs_1 = __webpack_require__(/*! fs */ "fs");
+const path_1 = __webpack_require__(/*! path */ "path");
 class OverviewPage {
     page;
     installButton = () => this.page.locator("button::-p-text(Install)");
@@ -523,6 +543,19 @@ class OverviewPage {
     }
     async install() {
         await this.installButton().click();
+    }
+    ensureDirExist(dirPath) {
+        const resolvedPath = (0, path_1.resolve)(dirPath);
+        if (!(0, fs_1.existsSync)(resolvedPath)) {
+            (0, fs_1.mkdirSync)(resolvedPath, { recursive: true });
+            console.log(`Directory created: ${resolvedPath}`);
+        }
+    }
+    async takeScreenshot() {
+        const screenshotBuffer = await this.page.screenshot();
+        this.ensureDirExist("/tmp/agama/screenshots");
+        const screenshotPath = (0, path_1.resolve)("/tmp/agama/screenshots", "overview_screenshot.png");
+        (0, fs_1.writeFileSync)(screenshotPath, screenshotBuffer);
     }
 }
 exports.OverviewPage = OverviewPage;
@@ -627,13 +660,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SoftwareSelectionPage = void 0;
 class SoftwareSelectionPage {
     page;
-    patternText = (pattern) => this.page.locator(`::-p-aria(Select ${pattern})`);
-    closeButton = () => this.page.locator("button::-p-text(Close)");
+    patternCheckBox = (pattern) => this.page.locator(`input[type=checkbox][rowid=${pattern}-title]`);
+    closeButton = () => this.page.locator("::-p-text(Close)");
     constructor(page) {
         this.page = page;
     }
     async selectPattern(pattern) {
-        await this.patternText(pattern).click();
+        await this.patternCheckBox(pattern).click();
     }
     async close() {
         await this.closeButton().click();

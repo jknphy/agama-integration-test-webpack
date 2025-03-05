@@ -770,12 +770,14 @@ exports.LoginAsRootPage = LoginAsRootPage;
 /*!************************************!*\
   !*** ./src/pages/overview_page.ts ***!
   \************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OverviewPage = void 0;
+const fs_1 = __webpack_require__(/*! fs */ "fs");
+const path_1 = __webpack_require__(/*! path */ "path");
 class OverviewPage {
     page;
     installButton = () => this.page.locator("button::-p-text(Install)");
@@ -788,6 +790,19 @@ class OverviewPage {
     }
     async install() {
         await this.installButton().click();
+    }
+    ensureDirExist(dirPath) {
+        const resolvedPath = (0, path_1.resolve)(dirPath);
+        if (!(0, fs_1.existsSync)(resolvedPath)) {
+            (0, fs_1.mkdirSync)(resolvedPath, { recursive: true });
+            console.log(`Directory created: ${resolvedPath}`);
+        }
+    }
+    async takeScreenshot() {
+        const screenshotBuffer = await this.page.screenshot();
+        this.ensureDirExist("/tmp/agama/screenshots");
+        const screenshotPath = (0, path_1.resolve)("/tmp/agama/screenshots", "overview_screenshot.png");
+        (0, fs_1.writeFileSync)(screenshotPath, screenshotBuffer);
     }
 }
 exports.OverviewPage = OverviewPage;
