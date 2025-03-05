@@ -81,6 +81,7 @@ function logIn(password) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.selectSinglePattern = selectSinglePattern;
+exports.selectMultiPattern = selectMultiPattern;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
 const software_page_1 = __webpack_require__(/*! ../pages/software_page */ "./src/pages/software_page.ts");
@@ -93,6 +94,24 @@ function selectSinglePattern(pattern) {
         await sidebar.goToSoftware();
         await software.changeSelection();
         await softwareSelection.selectPattern(pattern);
+        await softwareSelection.close();
+    });
+}
+function selectMultiPattern(patterns) {
+    (0, helpers_1.it)(`should select patterns ${patterns.join(", ")}`, async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const software = new software_page_1.SoftwarePage(helpers_1.page);
+        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
+        await sidebar.goToSoftware();
+        await software.changeSelection();
+        await Promise.all(patterns.map(async (pattern) => {
+            try {
+                await softwareSelection.selectPattern(pattern);
+            }
+            catch (error) {
+                console.error(`Failed to select pattern: ${pattern}`, error);
+            }
+        }));
         await softwareSelection.close();
     });
 }
@@ -627,7 +646,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SoftwareSelectionPage = void 0;
 class SoftwareSelectionPage {
     page;
-    patternText = (pattern) => this.page.locator(`::-p-aria(Select ${pattern})`);
+    patternText = (pattern) => this.page.locator(`::b#${pattern}-tile)`);
     closeButton = () => this.page.locator("button::-p-text(Close)");
     constructor(page) {
         this.page = page;

@@ -15,6 +15,7 @@ import { logIn } from "./checks/login";
 import { performInstallation } from "./checks/installation";
 import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
 import { prepareDasdStorage } from "./checks/storage_dasd";
+import { selectMultiPattern } from "./checks/software_selection";
 
 // parse options from the command line
 const options = parse((cmd) =>
@@ -26,7 +27,8 @@ const options = parse((cmd) =>
     )
     .option("--registration-code <code>", "Registration code")
     .option("--install", "Proceed to install the system (the default is not to install it)")
-    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)"),
+    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)")
+    .option("--pattern <patterns...>', 'Select software pattern"),
 );
 
 test_init(options);
@@ -37,5 +39,9 @@ if (options.productId !== "none")
 if (options.registrationCode) enterRegistration(options.registrationCode);
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
+if (options.pattern) {
+  console.log("Pattern value:", options.pattern);
+  selectMultiPattern(options.pattern);
+}
 if (options.dasd) prepareDasdStorage();
 if (options.install) performInstallation();
