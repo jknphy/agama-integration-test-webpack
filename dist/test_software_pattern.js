@@ -71,6 +71,136 @@ function logIn(password) {
 
 /***/ }),
 
+/***/ "./src/checks/product_selection.ts":
+/*!*****************************************!*\
+  !*** ./src/checks/product_selection.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.productSelectionByName = productSelectionByName;
+exports.productSelection = productSelection;
+exports.productSelectionWithLicense = productSelectionWithLicense;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const configuring_product_page_1 = __webpack_require__(/*! ../pages/configuring_product_page */ "./src/pages/configuring_product_page.ts");
+const product_selection_page_1 = __webpack_require__(/*! ../pages/product_selection_page */ "./src/pages/product_selection_page.ts");
+function configuringProductStarted() {
+    (0, helpers_1.it)("should start configuring the product", async function () {
+        await new configuring_product_page_1.ConfiguringProductPage(helpers_1.page).wait();
+    });
+}
+function productSelectionByName(productName) {
+    (0, helpers_1.it)(`should allow to select product ${productName}`, async function () {
+        await new product_selection_page_1.ProductSelectionPage(helpers_1.page).selectByName(productName);
+    });
+    configuringProductStarted();
+}
+function productSelection(productId) {
+    (0, helpers_1.it)(`should allow to select product ${productId}`, async function () {
+        const productSelectionPage = new product_selection_page_1.ProductSelectionPage(helpers_1.page);
+        await productSelectionPage.choose(productId);
+        await productSelectionPage.select();
+    });
+    configuringProductStarted();
+}
+function productSelectionWithLicense(productId) {
+    (0, helpers_1.it)(`should allow to choose product ${productId}`, async function () {
+        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).choose(productId);
+    });
+    (0, helpers_1.it)(`should allow to review its license`, async function () {
+        const productSelectionWithRegistrationPage = new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page);
+        await productSelectionWithRegistrationPage.openLicense();
+        await productSelectionWithRegistrationPage.verifyLicense();
+        await productSelectionWithRegistrationPage.closeLicense();
+    });
+    (0, helpers_1.it)(`should allow to accept its license`, async function () {
+        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).acceptProductLicense();
+    });
+    (0, helpers_1.it)(`should allow to select product`, async function () {
+        await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).select();
+    });
+    configuringProductStarted();
+}
+
+
+/***/ }),
+
+/***/ "./src/checks/registration.ts":
+/*!************************************!*\
+  !*** ./src/checks/registration.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.enterRegistration = enterRegistration;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
+const registration_enter_code_page_1 = __webpack_require__(/*! ../pages/registration_enter_code_page */ "./src/pages/registration_enter_code_page.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+function enterRegistration(code) {
+    (0, helpers_1.it)("should allow setting registration", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const registration = new registration_enter_code_page_1.RegistrationEnterCodePage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await registration.fillCode(code);
+        await registration.register();
+    });
+    (0, helpers_1.it)("should not display option to register in Overview", async function () {
+        await new overview_page_1.OverviewPage(helpers_1.page).waitWarningAlertToDisappear();
+    });
+}
+
+
+/***/ }),
+
+/***/ "./src/checks/root_authentication.ts":
+/*!*******************************************!*\
+  !*** ./src/checks/root_authentication.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.editRootUser = editRootUser;
+exports.setupMandatoryRootAuth = setupMandatoryRootAuth;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const setup_root_user_authentication_page_1 = __webpack_require__(/*! ../pages/setup_root_user_authentication_page */ "./src/pages/setup_root_user_authentication_page.ts");
+const root_authentication_methods_1 = __webpack_require__(/*! ../pages/root_authentication_methods */ "./src/pages/root_authentication_methods.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const users_page_1 = __webpack_require__(/*! ../pages/users_page */ "./src/pages/users_page.ts");
+function editRootUser(password) {
+    (0, helpers_1.it)("should edit the root user", async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const users = new users_page_1.UsersPage(helpers_1.page);
+        const setARootPassword = new root_authentication_methods_1.SetARootPasswordPage(helpers_1.page);
+        await sidebar.goToUsers();
+        await users.editRootUser();
+        await setARootPassword.usePassword();
+        await setARootPassword.fillPassword(password);
+        await setARootPassword.fillPasswordConfirmation(password);
+        await setARootPassword.accept();
+        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
+        await (0, helpers_1.sleep)(2000);
+    });
+}
+function setupMandatoryRootAuth(password) {
+    (0, helpers_1.it)("should setup root user authentication password", async function () {
+        const setupRootuserAuthentication = new setup_root_user_authentication_page_1.SetupRootUserAuthenticationPage(helpers_1.page);
+        // longer timeout to refresh repos when coming from product selection
+        await setupRootuserAuthentication.wait(3 * 60 * 1000);
+        await setupRootuserAuthentication.fillPassword(password);
+        await setupRootuserAuthentication.submit();
+    }, 3 * 60 * 1000);
+}
+
+
+/***/ }),
+
 /***/ "./src/checks/software_selection.ts":
 /*!******************************************!*\
   !*** ./src/checks/software_selection.ts ***!
@@ -436,6 +566,31 @@ var Desktop;
 
 /***/ }),
 
+/***/ "./src/pages/configuring_product_page.ts":
+/*!***********************************************!*\
+  !*** ./src/pages/configuring_product_page.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConfiguringProductPage = void 0;
+class ConfiguringProductPage {
+    page;
+    configuringTheProductText = () => this.page.locator("::-p-text(Configuring the product)");
+    constructor(page) {
+        this.page = page;
+    }
+    async wait() {
+        await this.configuringTheProductText().wait();
+    }
+}
+exports.ConfiguringProductPage = ConfiguringProductPage;
+
+
+/***/ }),
+
 /***/ "./src/pages/confirm_installation_page.ts":
 /*!************************************************!*\
   !*** ./src/pages/confirm_installation_page.ts ***!
@@ -540,6 +695,169 @@ class OverviewPage {
     }
 }
 exports.OverviewPage = OverviewPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/product_selection_page.ts":
+/*!*********************************************!*\
+  !*** ./src/pages/product_selection_page.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ProductSelectionWithRegistrationPage = exports.ProductSelectionPage = void 0;
+class ProductSelectionPage {
+    page;
+    productText = (name) => this.page.locator(`::-p-text(${name})`);
+    productId = (id) => this.page.locator(`input#${id}`);
+    selectButton = () => this.page.locator("button[form='productSelectionForm']");
+    constructor(page) {
+        this.page = page;
+    }
+    async choose(id) {
+        (await this.productId(id).waitHandle()).scrollIntoView();
+        await this.productId(id).click();
+    }
+    async select() {
+        await this.selectButton().click();
+    }
+    async selectByName(name) {
+        await this.choose(name);
+        await this.selectButton().click();
+    }
+}
+exports.ProductSelectionPage = ProductSelectionPage;
+function LicenseAcceptable(Base) {
+    return class extends Base {
+        licenseAcceptanceCheckbox = () => this.page.locator("::-p-text(I have read and)");
+        licenseOpenButton = () => this.page.locator("::-p-text(license)");
+        licenseCloseButton = () => this.page.locator("::-p-text(Close)");
+        licenseText = () => this.page.locator("::-p-text(SUSE(R) End User License Agreement for Beta Software)");
+        async acceptLicense() {
+            await this.licenseAcceptanceCheckbox().click();
+        }
+        async openLicense() {
+            await this.licenseOpenButton().click();
+        }
+        async verifyLicense() {
+            await this.licenseText().wait();
+        }
+        async closeLicense() {
+            await this.licenseCloseButton().click();
+        }
+        async acceptProductLicense() {
+            await this.acceptLicense();
+        }
+    };
+}
+class ProductSelectionWithRegistrationPage extends LicenseAcceptable(ProductSelectionPage) {
+}
+exports.ProductSelectionWithRegistrationPage = ProductSelectionWithRegistrationPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/registration_enter_code_page.ts":
+/*!***************************************************!*\
+  !*** ./src/pages/registration_enter_code_page.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RegistrationEnterCodePage = void 0;
+class RegistrationEnterCodePage {
+    page;
+    codeInput = () => this.page.locator("input#key");
+    registertButton = () => this.page.locator("button[form='productRegistration']");
+    constructor(page) {
+        this.page = page;
+    }
+    async fillCode(code) {
+        await this.codeInput().fill(code);
+    }
+    async register() {
+        await this.registertButton().click();
+    }
+}
+exports.RegistrationEnterCodePage = RegistrationEnterCodePage;
+
+
+/***/ }),
+
+/***/ "./src/pages/root_authentication_methods.ts":
+/*!**************************************************!*\
+  !*** ./src/pages/root_authentication_methods.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SetARootPasswordPage = void 0;
+class SetARootPasswordPage {
+    page;
+    acceptText = () => this.page.locator("button::-p-text(Accept)");
+    confirmText = () => this.page.locator("button::-p-text(Confirm)");
+    passwordInput = () => this.page.locator("input#password");
+    passwordConfirmationInput = () => this.page.locator("input#passwordConfirmation");
+    usePasswordToggle = () => this.page.locator("::-p-text(Use password)");
+    constructor(page) {
+        this.page = page;
+    }
+    async accept() {
+        await this.acceptText().click();
+    }
+    async confirm() {
+        await this.confirmText().click();
+    }
+    async fillPassword(password) {
+        await this.passwordInput().fill(password);
+    }
+    async fillPasswordConfirmation(password) {
+        await this.passwordConfirmationInput().fill(password);
+    }
+    async usePassword() {
+        await this.usePasswordToggle().click();
+    }
+}
+exports.SetARootPasswordPage = SetARootPasswordPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/setup_root_user_authentication_page.ts":
+/*!**********************************************************!*\
+  !*** ./src/pages/setup_root_user_authentication_page.ts ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SetupRootUserAuthenticationPage = void 0;
+class SetupRootUserAuthenticationPage {
+    page;
+    rootPasswordInput = () => this.page.locator("input#rootPassword");
+    submitButton = () => this.page.locator("button[type='submit']");
+    constructor(page) {
+        this.page = page;
+    }
+    async wait(timeout) {
+        await this.rootPasswordInput().setTimeout(timeout).wait();
+    }
+    async fillPassword(password) {
+        await this.rootPasswordInput().fill(password);
+    }
+    async submit() {
+        await this.submitButton().click();
+    }
+}
+exports.SetupRootUserAuthenticationPage = SetupRootUserAuthenticationPage;
 
 
 /***/ }),
@@ -658,10 +976,43 @@ exports.SoftwareSelectionPage = SoftwareSelectionPage;
 
 /***/ }),
 
-/***/ "./src/test_graphical_environment.ts":
-/*!*******************************************!*\
-  !*** ./src/test_graphical_environment.ts ***!
-  \*******************************************/
+/***/ "./src/pages/users_page.ts":
+/*!*********************************!*\
+  !*** ./src/pages/users_page.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UsersPage = void 0;
+class UsersPage {
+    page;
+    firstUserLink = () => this.page.locator("a[href='#/users/first']");
+    editRootUserButton = () => this.page.locator("a[href='#/users/root/edit']");
+    defineTheFirstUserButton = () => this.page.locator("a[href='#/users/first/edit']");
+    constructor(page) {
+        this.page = page;
+    }
+    async defineAUserNow() {
+        await this.firstUserLink().click();
+    }
+    async editRootUser() {
+        await this.editRootUserButton().click();
+    }
+    async defineTheFirstUser() {
+        await this.defineTheFirstUserButton().click();
+    }
+}
+exports.UsersPage = UsersPage;
+
+
+/***/ }),
+
+/***/ "./src/test_software_pattern.ts":
+/*!**************************************!*\
+  !*** ./src/test_software_pattern.ts ***!
+  \**************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -673,20 +1024,35 @@ exports.SoftwareSelectionPage = SoftwareSelectionPage;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
-const commander_1 = __webpack_require__(/*! commander */ "./node_modules/commander/index.js");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
+const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
+const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/checks/registration.ts");
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
+const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
 const software_selection_1 = __webpack_require__(/*! ./checks/software_selection */ "./src/checks/software_selection.ts");
+function commaSeparatedList(value) {
+    return value.split(",");
+}
 // parse options from the command line
 const options = (0, cmdline_1.parse)((cmd) => cmd
-    .addOption(new commander_1.Option("--desktop <name>", "Desktop to install")
-    .choices(Object.keys(helpers_1.Desktop))
-    .default("none"))
-    .option("--install", "Proceed to install the system (the default is not to install it)"));
+    .option("--product-id <id>", "Product id to select a product to install", "none")
+    .option("--accept-license", "Accept license for a product with license (the default is a product without license)")
+    .option("--registration-code <code>", "Registration code")
+    .option("--install", "Proceed to install the system (the default is not to install it)")
+    .option("--patterns <pattern>,<pattern>...", "comma separated patterns", commaSeparatedList));
 (0, helpers_1.test_init)(options);
 (0, login_1.logIn)(options.password);
-(0, software_selection_1.selectSinglePattern)(helpers_1.Desktop[options.desktop]);
+if (options.productId !== "none")
+    if (options.acceptLicense)
+        (0, product_selection_1.productSelectionWithLicense)(options.productId);
+    else
+        (0, product_selection_1.productSelection)(options.productId);
+if (options.registrationCode)
+    (0, registration_1.enterRegistration)(options.registrationCode);
+if (options.patterns)
+    (0, software_selection_1.selectPatterns)(options.patterns);
+(0, root_authentication_1.editRootUser)(options.rootPassword);
 if (options.install)
     (0, installation_1.performInstallation)();
 
@@ -1075,7 +1441,7 @@ module.exports = require("zlib");
 /******/ 	// the startup function
 /******/ 	__webpack_require__.x = () => {
 /******/ 		// Load entry module and return exports
-/******/ 		var __webpack_exports__ = __webpack_require__.O(undefined, ["vendor"], () => (__webpack_require__(__webpack_require__.s = "./src/test_graphical_environment.ts")))
+/******/ 		var __webpack_exports__ = __webpack_require__.O(undefined, ["vendor"], () => (__webpack_require__(__webpack_require__.s = "./src/test_software_pattern.ts")))
 /******/ 		__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 		return __webpack_exports__;
 /******/ 	};
@@ -1179,7 +1545,7 @@ module.exports = require("zlib");
 /******/ 		// object to store loaded chunks
 /******/ 		// "1" means "loaded", otherwise not loaded yet
 /******/ 		var installedChunks = {
-/******/ 			"test_graphical_environment": 1
+/******/ 			"test_software_pattern": 1
 /******/ 		};
 /******/ 		
 /******/ 		__webpack_require__.O.require = (chunkId) => (installedChunks[chunkId]);
@@ -1231,4 +1597,4 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=test_graphical_environment.js.map
+//# sourceMappingURL=test_software_pattern.js.map

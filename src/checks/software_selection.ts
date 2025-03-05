@@ -15,3 +15,19 @@ export function selectSinglePattern(pattern: string) {
     await softwareSelection.close();
   });
 }
+
+export function selectPatterns(patterns: string[]) {
+  it(`should select patterns ${patterns.join(", ")}`, async function () {
+    const sidebar = new SidebarPage(page);
+    const software = new SoftwarePage(page);
+    const softwareSelection = new SoftwareSelectionPage(page);
+
+    await sidebar.goToSoftware();
+    await software.changeSelection();
+    for (const pattern of patterns) {
+      await softwareSelection.selectPattern(pattern);
+    }
+
+    await softwareSelection.close();
+  });
+}
