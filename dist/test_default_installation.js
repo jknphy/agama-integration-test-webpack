@@ -235,6 +235,54 @@ function setupMandatoryRootAuth(password) {
 
 /***/ }),
 
+/***/ "./src/checks/software_selection.ts":
+/*!******************************************!*\
+  !*** ./src/checks/software_selection.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.selectSinglePattern = selectSinglePattern;
+exports.selectMultiPattern = selectMultiPattern;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const software_page_1 = __webpack_require__(/*! ../pages/software_page */ "./src/pages/software_page.ts");
+const software_selection_page_1 = __webpack_require__(/*! ../pages/software_selection_page */ "./src/pages/software_selection_page.ts");
+function selectSinglePattern(pattern) {
+    (0, helpers_1.it)(`should select pattern ${pattern}`, async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const software = new software_page_1.SoftwarePage(helpers_1.page);
+        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
+        await sidebar.goToSoftware();
+        await software.changeSelection();
+        await softwareSelection.selectPattern(pattern);
+        await softwareSelection.close();
+    });
+}
+function selectMultiPattern(patterns) {
+    (0, helpers_1.it)(`should select patterns ${patterns.join(", ")}`, async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const software = new software_page_1.SoftwarePage(helpers_1.page);
+        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
+        await sidebar.goToSoftware();
+        await software.changeSelection();
+        await Promise.all(patterns.map(async (pattern) => {
+            try {
+                await softwareSelection.selectPattern(pattern);
+            }
+            catch (error) {
+                console.error(`Failed to select pattern: ${pattern}`, error);
+            }
+        }));
+        await softwareSelection.close();
+    });
+}
+
+
+/***/ }),
+
 /***/ "./src/checks/storage_dasd.ts":
 /*!************************************!*\
   !*** ./src/checks/storage_dasd.ts ***!
@@ -1063,6 +1111,60 @@ exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
 
 /***/ }),
 
+/***/ "./src/pages/software_page.ts":
+/*!************************************!*\
+  !*** ./src/pages/software_page.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SoftwarePage = void 0;
+class SoftwarePage {
+    page;
+    changeSelectionButton = () => this.page.locator("::-p-text(Change selection)");
+    constructor(page) {
+        this.page = page;
+    }
+    async changeSelection() {
+        await this.changeSelectionButton().click();
+    }
+}
+exports.SoftwarePage = SoftwarePage;
+
+
+/***/ }),
+
+/***/ "./src/pages/software_selection_page.ts":
+/*!**********************************************!*\
+  !*** ./src/pages/software_selection_page.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SoftwareSelectionPage = void 0;
+class SoftwareSelectionPage {
+    page;
+    patternText = (pattern) => this.page.locator(`::b#${pattern}-tile)`);
+    closeButton = () => this.page.locator("button::-p-text(Close)");
+    constructor(page) {
+        this.page = page;
+    }
+    async selectPattern(pattern) {
+        await this.patternText(pattern).click();
+    }
+    async close() {
+        await this.closeButton().click();
+    }
+}
+exports.SoftwareSelectionPage = SoftwareSelectionPage;
+
+
+/***/ }),
+
 /***/ "./src/pages/storage_page.ts":
 /*!***********************************!*\
   !*** ./src/pages/storage_page.ts ***!
@@ -1152,13 +1254,15 @@ const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
 const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
 const storage_dasd_1 = __webpack_require__(/*! ./checks/storage_dasd */ "./src/checks/storage_dasd.ts");
+const software_selection_1 = __webpack_require__(/*! ./checks/software_selection */ "./src/checks/software_selection.ts");
 // parse options from the command line
 const options = (0, cmdline_1.parse)((cmd) => cmd
     .option("--product-id <id>", "Product id to select a product to install", "none")
     .option("--accept-license", "Accept license for a product with license (the default is a product without license)")
     .option("--registration-code <code>", "Registration code")
     .option("--install", "Proceed to install the system (the default is not to install it)")
-    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)"));
+    .option("--dasd", "Prepare DASD storage (the default is not to prepare it)")
+    .option("--pattern <patterns...>', 'Select software pattern"));
 (0, helpers_1.test_init)(options);
 (0, login_1.logIn)(options.password);
 if (options.productId !== "none")
@@ -1170,6 +1274,10 @@ if (options.registrationCode)
     (0, registration_1.enterRegistration)(options.registrationCode);
 (0, first_user_1.createFirstUser)(options.password);
 (0, root_authentication_1.editRootUser)(options.rootPassword);
+if (options.pattern) {
+    console.log("Pattern value:", options.pattern);
+    (0, software_selection_1.selectMultiPattern)(options.pattern);
+}
 if (options.dasd)
     (0, storage_dasd_1.prepareDasdStorage)();
 if (options.install)

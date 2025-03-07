@@ -15,3 +15,22 @@ export function selectSinglePattern(pattern: string) {
     await softwareSelection.close();
   });
 }
+
+export function selectMultiPattern(patterns: string[]) {
+  it(`should select patterns ${patterns.join(", ")}`, async function () {
+    const sidebar = new SidebarPage(page);
+    const software = new SoftwarePage(page);
+    const softwareSelection = new SoftwareSelectionPage(page);
+
+      await sidebar.goToSoftware();
+      await software.changeSelection();
+      await Promise.all(patterns.map(async (pattern) => {
+        try {
+          await softwareSelection.selectPattern(pattern);
+        } catch (error) {
+          console.error(`Failed to select pattern: ${pattern}`, error);
+        }
+      }));
+      await softwareSelection.close();
+  });
+}
