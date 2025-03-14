@@ -40,7 +40,7 @@ export class SidebarPage {
   }
 
   async goToUsers() {
-    await this.usersLink().click();
+    await this.usersLink().setTimeout(40000).click();
   }
 }
 

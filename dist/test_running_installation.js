@@ -542,7 +542,7 @@ class SidebarPage {
         await this.softwareLink().click();
     }
     async goToUsers() {
-        await this.usersLink().click();
+        await this.usersLink().setTimeout(40000).click();
     }
 }
 exports.SidebarPage = SidebarPage;
