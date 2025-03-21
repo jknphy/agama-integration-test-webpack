@@ -18,6 +18,7 @@ const confirm_installation_page_1 = __webpack_require__(/*! ../pages/confirm_ins
 const congratulation_page_1 = __webpack_require__(/*! ../pages/congratulation_page */ "./src/pages/congratulation_page.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const install_page_1 = __webpack_require__(/*! ../pages/install_page */ "./src/pages/install_page.ts");
 function performInstallation() {
     (0, helpers_1.it)("should start installation", async function () {
         const confirmInstallation = new confirm_installation_page_1.ConfirmInstallationPage(helpers_1.page);
@@ -27,9 +28,14 @@ function performInstallation() {
         await overview.install();
         await confirmInstallation.continue();
     });
-    (0, helpers_1.it)("should finish installation", async function () {
-        await new congratulation_page_1.CongratulationPage(helpers_1.page).wait(14 * 60 * 1000);
+    (0, helpers_1.it)("should install the operating system", async function () {
+        const install = new install_page_1.InstallPage(helpers_1.page);
+        await install.waitInstallBegin();
+        await install.waitInstallFinish();
     }, 15 * 60 * 1000);
+    (0, helpers_1.it)("should see the congratulation page", async function () {
+        await new congratulation_page_1.CongratulationPage(helpers_1.page).checkCongratulationText();
+    });
 }
 function finishInstallation() {
     (0, helpers_1.it)("should finish", async function () {
@@ -437,8 +443,58 @@ class CongratulationPage {
     async wait(timeout) {
         await this.congratulationText().setTimeout(timeout).wait();
     }
+    async checkCongratulationText() {
+        await this.congratulationText();
+    }
 }
 exports.CongratulationPage = CongratulationPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/install_page.ts":
+/*!***********************************!*\
+  !*** ./src/pages/install_page.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InstallPage = void 0;
+class InstallPage {
+    page;
+    installingSpinner = `svg.pf-m-xl[role="progressbar"]`;
+    constructor(page) {
+        this.page = page;
+    }
+    async waitInstallBegin() {
+        await this.page.waitForSelector(this.installingSpinner);
+    }
+    async waitInstallFinish() {
+        const checkInterval = 10000; // 10 seconds
+        const maxTimeout = 900000; // 15 minutes
+        const startTime = Date.now();
+        while (Date.now() - startTime < maxTimeout) {
+            try {
+                await this.page.waitForSelector(this.installingSpinner, {
+                    hidden: true,
+                    timeout: checkInterval,
+                });
+                const timeTaken = (Date.now() - startTime) / 1000;
+                console.log(`Installation completed. Time taken: ${timeTaken} seconds.`);
+                return; // Spinner disappeared
+            }
+            catch {
+                // Continue the loop if the spinner is still visible after the checkInterval
+            }
+            // Wait checkInterval before the next check
+            await new Promise((resolve) => setTimeout(resolve, checkInterval));
+        }
+        throw new Error("Spinner did not disappear within the timeout period");
+    }
+}
+exports.InstallPage = InstallPage;
 
 
 /***/ }),

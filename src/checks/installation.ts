@@ -3,6 +3,7 @@ import { ConfirmInstallationPage } from "../pages/confirm_installation_page";
 import { CongratulationPage } from "../pages/congratulation_page";
 import { OverviewPage } from "../pages/overview_page";
 import { SidebarPage } from "../pages/sidebar_page";
+import { InstallPage } from "../pages/install_page";
 
 export function performInstallation() {
   it("should start installation", async function () {
@@ -16,12 +17,19 @@ export function performInstallation() {
   });
 
   it(
-    "should finish installation",
+    "should install the operating system",
     async function () {
-      await new CongratulationPage(page).wait(14 * 60 * 1000);
+      const install = new InstallPage(page);
+
+      await install.waitInstallBegin();
+      await install.waitInstallFinish();
     },
-    15 * 60 * 1000,
+    15 * 60 * 1000, // 15 minutes
   );
+
+  it("should see the congratulation page", async function () {
+    await new CongratulationPage(page).checkCongratulationText();
+  });
 }
 
 export function finishInstallation() {

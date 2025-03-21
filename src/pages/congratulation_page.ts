@@ -11,4 +11,8 @@ export class CongratulationPage {
   async wait(timeout: number) {
     await this.congratulationText().setTimeout(timeout).wait();
   }
+
+  async checkCongratulationText() {
+    await this.congratulationText();
+  }
 }
