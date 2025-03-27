@@ -15,6 +15,7 @@ import { enterRegistration } from "./checks/registration";
 import { logIn } from "./checks/login";
 import { performInstallation } from "./checks/installation";
 import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
+import { ensureOverviewVisible } from "./checks/overview";
 import { prepareDasdStorage } from "./checks/storage_dasd";
 import { prepareZfcpStorage } from "./checks/storage_zfcp";
 
@@ -41,6 +42,7 @@ logIn(options.password);
 if (options.productId !== "none")
   if (options.acceptLicense) productSelectionWithLicense(options.productId);
   else productSelection(options.productId);
+ensureOverviewVisible();
 if (options.registrationCode) enterRegistration(options.registrationCode);
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
