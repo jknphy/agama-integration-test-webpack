@@ -216,6 +216,7 @@ function productSelectionWithLicense(productId) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enterRegistration = enterRegistration;
 exports.enterRegistrationHa = enterRegistrationHa;
+exports.enterRMTRegistration = enterRMTRegistration;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const registration_page_1 = __webpack_require__(/*! ../pages/registration_page */ "./src/pages/registration_page.ts");
@@ -240,6 +241,22 @@ function enterRegistrationHa(code) {
         await extensionRegistration.fillCode(code);
         await extensionRegistration.register();
         await extensionRegistration.verifyExtensionRegistration();
+    });
+}
+function enterRMTRegistration(url, password) {
+    (0, helpers_1.it)("should allow setting RMT registration", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const rmtRegistration = new registration_page_1.CustomRegistrationPage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await rmtRegistration.configureCustomRegistration(url, password);
+        await rmtRegistration.register();
+        await new overview_page_1.OverviewPage(helpers_1.page).waitVisible(40000);
+    });
+    (0, helpers_1.it)("should display RMT server in the registration page", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const rmtRegistration = new registration_page_1.CustomRegistrationPage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await rmtRegistration.verifyCustomRegistration(url);
     });
 }
 
@@ -954,7 +971,7 @@ exports.ProductSelectionWithRegistrationPage = ProductSelectionWithRegistrationP
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ExtensionHaRegistrationPage = exports.ProductRegistrationPage = void 0;
+exports.CustomRegistrationPage = exports.ExtensionHaRegistrationPage = exports.ProductRegistrationPage = void 0;
 class RegistrationBasePage {
     page;
     codeInput;
@@ -984,12 +1001,43 @@ function ExtensionHaRegistrable(Base) {
         }
     };
 }
+function CustomRegistrable(Base) {
+    return class extends Base {
+        codeInput = () => this.page.locator("input#code");
+        serverButton = () => this.page.locator("#server");
+        sccOption = () => this.page.locator("::-p-text(SUSE Customer Center \\(SCC\\)Register)");
+        // Filed bug for this locator.
+        customOption = () => this.page.locator("::-p-text(Register using a)");
+        customPasswordCheckbox = () => this.page.locator("input#provide-code");
+        customURLInput = () => this.page.locator("input#url");
+        async configureCustomRegistration(url, regcode) {
+            await this.serverButton().click();
+            await this.page.waitForSelector('[aria-label="Server options"]', { visible: true });
+            await this.customOption().wait();
+            await this.customOption().click();
+            await this.page.waitForSelector("input#url", { visible: true });
+            await this.customURLInput().fill(url);
+            if (regcode) {
+                await this.customPasswordCheckbox().click();
+                await this.page.waitForSelector("input#code", { visible: true });
+                await this.codeInput().fill(regcode);
+            }
+        }
+        async verifyCustomRegistration(url) {
+            await this.page.locator("::-p-text(has been registered with below information)").wait();
+            await this.page.locator(`::-p-text(${url})`).wait();
+        }
+    };
+}
 class ProductRegistrationPage extends ProductRegistrable(RegistrationBasePage) {
 }
 exports.ProductRegistrationPage = ProductRegistrationPage;
 class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {
 }
 exports.ExtensionHaRegistrationPage = ExtensionHaRegistrationPage;
+class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {
+}
+exports.CustomRegistrationPage = CustomRegistrationPage;
 
 
 /***/ }),
