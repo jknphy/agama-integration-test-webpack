@@ -39,5 +39,43 @@ function ExtensionHaRegistrable<TBase extends GConstructor<RegistrationBasePage>
   };
 }
 
+function CustomRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
+  return class extends Base {
+    codeInput = () => this.page.locator("input#code");
+
+    private readonly serverButton = () => this.page.locator("#server");
+    private readonly sccOption = () =>
+      this.page.locator("::-p-text(SUSE Customer Center \\(SCC\\)Register)");
+
+    // Filed bug for this locator.
+    private readonly customOption = () => this.page.locator("::-p-text(Register using a)");
+    private readonly customPasswordCheckbox = () => this.page.locator("input#provide-code");
+    private readonly customURLInput = () => this.page.locator("input#url");
+
+    async configureCustomRegistration(url: string, regcode?: string) {
+      await this.serverButton().click();
+      await this.page.waitForSelector('[aria-label="Server options"]', { visible: true });
+
+      await this.customOption().wait();
+      await this.customOption().click();
+
+      await this.page.waitForSelector("input#url", { visible: true });
+      await this.customURLInput().fill(url);
+
+      if (regcode) {
+        await this.customPasswordCheckbox().click();
+        await this.page.waitForSelector("input#code", { visible: true });
+        await this.codeInput().fill(regcode);
+      }
+    }
+
+    async verifyCustomRegistration(url: string) {
+      await this.page.locator("::-p-text(has been registered with below information)").wait();
+      await this.page.locator(`::-p-text(${url})`).wait();
+    }
+  };
+}
+
 export class ProductRegistrationPage extends ProductRegistrable(RegistrationBasePage) {}
 export class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {}
+export class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {}
