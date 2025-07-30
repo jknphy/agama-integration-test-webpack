@@ -83,9 +83,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enterRegistration = enterRegistration;
 exports.enterRegistrationHa = enterRegistrationHa;
 exports.enterRegistrationRegUrl = enterRegistrationRegUrl;
+exports.registerPackageHub = registerPackageHub;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const registration_page_1 = __webpack_require__(/*! ../pages/registration_page */ "./src/pages/registration_page.ts");
+const trust_key_page_1 = __webpack_require__(/*! ../pages/trust_key_page */ "./src/pages/trust_key_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
 function enterRegistration(code) {
     (0, helpers_1.it)("should allow setting registration", async function () {
@@ -122,6 +124,17 @@ function enterRegistrationRegUrl(code) {
     });
     (0, helpers_1.it)("should display Overview", async function () {
         await new overview_page_1.OverviewPage(helpers_1.page).waitVisible(40000);
+    });
+}
+function registerPackageHub() {
+    (0, helpers_1.it)("should allow register packagehub", async function () {
+        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+        const extensionRegistration = new registration_page_1.ExtensionPhubRegistrationPage(helpers_1.page);
+        const packagehubTrustKey = new trust_key_page_1.TurstKeyPage(helpers_1.page);
+        await sidebar.goToRegistration();
+        await extensionRegistration.register();
+        await packagehubTrustKey.trustKey();
+        await extensionRegistration.verifyExtensionRegistration();
     });
 }
 
@@ -571,13 +584,13 @@ exports.OverviewPage = OverviewPage;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ExtensionHaRegistrationPage = exports.ProductRegistrationPage = void 0;
+exports.ExtensionPhubRegistrationPage = exports.ExtensionHaRegistrationPage = exports.ProductRegistrationPage = void 0;
 class RegistrationBasePage {
     page;
-    codeInput;
-    registerButton = () => this.page.locator("button::-p-text(Register)");
+    codeInput = () => this.page.locator("::-p-aria(Registration code)[type='password']");
+    registerButton = () => this.page.locator("::-p-aria(Register)");
     extensionRegisteredText = () => this.page.locator("::-p-text(The extension has been registered)");
-    registrationOptionCheckbox = () => this.page.locator("input#provide-code");
+    registrationOptionCheckbox = () => this.page.locator("::-p-aria(Provide registration code)");
     constructor(page) {
         this.page = page;
     }
@@ -590,27 +603,31 @@ class RegistrationBasePage {
     async register() {
         await this.registerButton().click();
     }
-}
-function ProductRegistrable(Base) {
-    return class extends Base {
-        codeInput = () => this.page.locator(`input[id="code"], input[id="key"]`);
-    };
+    async verifyExtensionRegistration() {
+        await this.extensionRegisteredText().wait();
+    }
 }
 function ExtensionHaRegistrable(Base) {
     return class extends Base {
-        codeInput = () => this.page.locator("input[id^='input-reg-code-sle-ha-16.']");
+        registerButton = () => this.page.locator("::-p-aria(Register)[type='submit']");
         extensionRegisteredText = () => this.page.locator("::-p-text(The extension has been registered)");
-        async verifyExtensionRegistration() {
-            await this.extensionRegisteredText().wait();
-        }
     };
 }
-class ProductRegistrationPage extends ProductRegistrable(RegistrationBasePage) {
+function ExtensionPhubRegistrable(Base) {
+    return class extends Base {
+        registerButton = () => this.page.locator("::-p-aria(Register)[type='button']");
+        extensionRegisteredText = () => this.page.locator("::-p-text(The extension was registered without any registration code)");
+    };
+}
+class ProductRegistrationPage extends RegistrationBasePage {
 }
 exports.ProductRegistrationPage = ProductRegistrationPage;
 class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {
 }
 exports.ExtensionHaRegistrationPage = ExtensionHaRegistrationPage;
+class ExtensionPhubRegistrationPage extends ExtensionPhubRegistrable(RegistrationBasePage) {
+}
+exports.ExtensionPhubRegistrationPage = ExtensionPhubRegistrationPage;
 
 
 /***/ }),
@@ -671,6 +688,33 @@ function RegistrationNavigable(Base) {
 class SidebarWithRegistrationPage extends RegistrationNavigable(SidebarPage) {
 }
 exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/trust_key_page.ts":
+/*!*************************************!*\
+  !*** ./src/pages/trust_key_page.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TurstKeyPage = void 0;
+class TurstKeyPage {
+    page;
+    trustKeyText = () => this.page.locator("::-p-text(Do you want to trust this key?)");
+    trustKeyButton = () => this.page.locator("button::-p-text(Trust)");
+    constructor(page) {
+        this.page = page;
+    }
+    async trustKey() {
+        await this.trustKeyText().wait();
+        await this.trustKeyButton().click();
+    }
+}
+exports.TurstKeyPage = TurstKeyPage;
 
 
 /***/ }),

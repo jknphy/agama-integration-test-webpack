@@ -632,8 +632,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SoftwareSelectionPage = void 0;
 class SoftwareSelectionPage {
     page;
-    patternCheckboxNotChecked = (pattern) => this.page.locator(`input[type=checkbox]:not(:checked)[aria-labelledby*=${pattern}-title]`);
-    patternCheckboxChecked = (pattern) => this.page.locator(`input[type=checkbox]:checked[aria-labelledby*=${pattern}-title]`);
+    escapePattern = (pattern) => pattern.replaceAll("+", "\\+");
+    patternCheckboxNotChecked = (pattern) => this.page.locator(`input[type=checkbox]:not(:checked)[aria-labelledby*=${this.escapePattern(pattern)}-title]`);
+    patternCheckboxChecked = (pattern) => this.page.locator(`input[type=checkbox]:checked[aria-labelledby*=${this.escapePattern(pattern)}-title]`);
     closeButton = () => this.page.locator("::-p-text(Close)");
     constructor(page) {
         this.page = page;
