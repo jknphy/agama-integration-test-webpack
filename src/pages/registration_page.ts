@@ -35,7 +35,10 @@ function ProductRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Ba
 
 function ExtensionHaRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
   return class extends Base {
-    codeInput = () => this.page.locator("input[id^='input-reg-code-sle-ha-16.']");
+    protected codeInput = () => this.page.locator("input[id^='input-reg-code-sle-ha-16.']");
+    protected readonly registerButton = () =>
+      this.page.locator("button[id^='register-button-sle-ha-16.']");
+
     extensionRegisteredText = () =>
       this.page.locator("::-p-text(The extension has been registered)");
 
@@ -45,5 +48,20 @@ function ExtensionHaRegistrable<TBase extends GConstructor<RegistrationBasePage>
   };
 }
 
+function ExtensionPhubRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
+  return class extends Base {
+    extensionRegisteredText = () =>
+      this.page.locator("::-p-text(The extension was registered without any registration code)");
+
+    protected readonly registerButton = () =>
+      this.page.locator("button[id^='register-button-PackageHub-16.']");
+
+    async verifyExtensionRegistration() {
+      await this.extensionRegisteredText().wait();
+    }
+  };
+}
+
 export class ProductRegistrationPage extends ProductRegistrable(RegistrationBasePage) {}
 export class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {}
+export class ExtensionPhubRegistrationPage extends ExtensionPhubRegistrable(RegistrationBasePage) {}
