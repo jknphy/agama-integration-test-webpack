@@ -16,6 +16,7 @@ import {
   enterRegistration,
   enterRegistrationHa,
   enterRegistrationRegUrl,
+  registerPackageHub,
 } from "./checks/registration";
 import { logIn } from "./checks/login";
 import { performInstallation } from "./checks/installation";
@@ -33,6 +34,7 @@ const options = parse((cmd) =>
     )
     .option("--registration-code <code>", "Registration code")
     .option("--registration-code-ha <code>", "Registration code for Extension High Availability")
+    .option("--register-package-hub", "Registration for PackageHub")
     .option("--patterns <pattern>...", "comma-separated list of patterns", commaSeparatedList)
     .option("--install", "Proceed to install the system (the default is not to install it)")
     .option("--inst-register-url", "Custom registration url was provided by kernel cmdline")
@@ -55,6 +57,7 @@ if (options.registrationCode)
   if (options.instRegisterUrl) enterRegistrationRegUrl(options.registrationCode);
   else enterRegistration(options.registrationCode);
 if (options.registrationCodeHa) enterRegistrationHa(options.registrationCodeHa);
+if (options.registerPackageHub) registerPackageHub();
 if (options.patterns) selectPatterns(options.patterns);
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
