@@ -2,11 +2,16 @@ import { type Page } from "puppeteer-core";
 
 export class SoftwareSelectionPage {
   private readonly page: Page;
-  private readonly patternCheckboxNotChecked = (pattern: string) =>
-    this.page.locator(`input[type=checkbox]:not(:checked)[aria-labelledby*=${pattern}-title]`);
+  private readonly escapePattern = (pattern: string) => pattern.replaceAll("+", "\\+");
+  private readonly patternCheckboxNotChecked = (pattern) =>
+    this.page.locator(
+      `input[type=checkbox]:not(:checked)[aria-labelledby*=${this.escapePattern(pattern)}-title]`,
+    );
 
-  private readonly patternCheckboxChecked = (pattern: string) =>
-    this.page.locator(`input[type=checkbox]:checked[aria-labelledby*=${pattern}-title]`);
+  private readonly patternCheckboxChecked = (pattern) =>
+    this.page.locator(
+      `input[type=checkbox]:checked[aria-labelledby*=${this.escapePattern(pattern)}-title]`,
+    );
 
   private readonly closeButton = () => this.page.locator("::-p-text(Close)");
 
