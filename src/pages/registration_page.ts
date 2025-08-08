@@ -28,18 +28,32 @@ class RegistrationBasePage {
   async register() {
     await this.registerButton().click();
   }
+
+  async verifyExtensionRegistration() {
+    await this.extensionRegisteredText().wait();
+  }
 }
 
 function ExtensionHaRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
   return class extends Base {
+    protected readonly registerButton = () =>
+      this.page.locator("::-p-aria(Register)[type='submit']");
+
     extensionRegisteredText = () =>
       this.page.locator("::-p-text(The extension has been registered)");
+  };
+}
 
-    async verifyExtensionRegistration() {
-      await this.extensionRegisteredText().wait();
-    }
+function ExtensionPhubRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
+  return class extends Base {
+    protected readonly registerButton = () =>
+      this.page.locator("::-p-aria(Register)[type='button']");
+
+    extensionRegisteredText = () =>
+      this.page.locator("::-p-text(The extension was registered without any registration code)");
   };
 }
 
 export class ProductRegistrationPage extends RegistrationBasePage {}
 export class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {}
+export class ExtensionPhubRegistrationPage extends ExtensionPhubRegistrable(RegistrationBasePage) {}
