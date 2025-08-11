@@ -12,6 +12,8 @@
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enableEncryption = enableEncryption;
+exports.isEncryptionEnabled = isEncryptionEnabled;
+exports.disableEncryption = disableEncryption;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const encryption_settings_page_1 = __webpack_require__(/*! ../pages/encryption_settings_page */ "./src/pages/encryption_settings_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
@@ -28,6 +30,26 @@ function enableEncryption(password) {
         await encryptionSettings.fillPasswordConfirmation(password);
         await encryptionSettings.accept();
         await storage.verifyEncryptionEnabled();
+    });
+}
+function isEncryptionEnabled() {
+    (0, helpers_1.it)("should verify that encryption is enabled", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.verifyEncryptionEnabled();
+    });
+}
+function disableEncryption() {
+    (0, helpers_1.it)("should disable encryption", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const encryptionSettings = new encryption_settings_page_1.EncryptionSettingsPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.editEncryption();
+        await encryptionSettings.encryptTheSystem(); // toggle off encryption
+        await encryptionSettings.accept();
+        await storage.verifyEncryptionDisabled();
     });
 }
 
@@ -703,6 +725,7 @@ class StoragePage {
     selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
     editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
+    encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
     ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
     addLvmVolumeLink = () => this.page.locator("::-p-text(Add LVM volume group)");
@@ -722,6 +745,9 @@ class StoragePage {
     }
     async verifyEncryptionEnabled() {
         await this.encryptionIsEnabledText().wait();
+    }
+    async verifyEncryptionDisabled() {
+        await this.encryptionIsDisabledText().wait();
     }
     async manageDasd() {
         await this.manageDasdLink().click();
