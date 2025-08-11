@@ -12,6 +12,7 @@ import { logIn } from "./checks/login";
 import { createFirstUser } from "./checks/first_user";
 import { editRootUser, verifyPasswordStrength } from "./checks/root_authentication";
 import { enterRegistration, enterRegistrationRegUrl } from "./checks/registration";
+import { enableEncryption, verifyEncryptionEnabled, disableEncryption } from "./checks/encryption";
 import { setPermanentHostname } from "./checks/hostname";
 import { setOnlyInstallationNetwork } from "./checks/network";
 import { decryptDevice } from "./checks/decryption";
@@ -28,6 +29,7 @@ const options = parse((cmd) =>
       "--accept-license",
       "Accept license for a product with license (the default is a product without license)",
     )
+    .option("--enable-encryption", "Enable the encryption before registration")
     .option("--registration-code <code>", "Registration code")
     .option("--staticHostname <hostname>", "Static Hostname")
     .option("--noCopyNetwork", "The connection will be used only during installation")
@@ -48,11 +50,14 @@ if (options.productId !== "none")
   else productSelection(options.productId);
 if (options.decryptPassword) decryptDevice(options.decryptPassword);
 if (options.destructiveActions) verifyDecryptDestructiveActions(options.destructiveActions);
-if (options.staticHostname) setPermanentHostname(options.staticHostname);
-if (options.noCopyNetwork) setOnlyInstallationNetwork();
+enableEncryption(options.password);
 if (options.registrationCode)
   if (options.instRegisterUrl) enterRegistrationRegUrl(options.registrationCode);
   else enterRegistration(options.registrationCode);
+verifyEncryptionEnabled();
+disableEncryption();
+if (options.staticHostname) setPermanentHostname(options.staticHostname);
+if (options.noCopyNetwork) setOnlyInstallationNetwork();
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
 verifyPasswordStrength();
