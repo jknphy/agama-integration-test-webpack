@@ -12,6 +12,8 @@
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enableEncryption = enableEncryption;
+exports.verifyEncryptionEnabled = verifyEncryptionEnabled;
+exports.disableEncryption = disableEncryption;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const encryption_settings_page_1 = __webpack_require__(/*! ../pages/encryption_settings_page */ "./src/pages/encryption_settings_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
@@ -28,6 +30,26 @@ function enableEncryption(password) {
         await encryptionSettings.fillPasswordConfirmation(password);
         await encryptionSettings.accept();
         await storage.verifyEncryptionEnabled();
+    });
+}
+function verifyEncryptionEnabled() {
+    (0, helpers_1.it)("should verify that encryption is enabled", async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.verifyEncryptionEnabled();
+    });
+}
+function disableEncryption() {
+    (0, helpers_1.it)("should disable encryption", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const encryptionSettings = new encryption_settings_page_1.EncryptionSettingsPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.editEncryption();
+        await encryptionSettings.toggleOffEncryption();
+        await encryptionSettings.accept();
+        await storage.verifyEncryptionDisabled();
     });
 }
 
@@ -510,6 +532,9 @@ class EncryptionSettingsPage {
     async accept() {
         await this.acceptButton().click();
     }
+    async toggleOffEncryption() {
+        await this.encryptTheSystemToggle().click();
+    }
 }
 exports.EncryptionSettingsPage = EncryptionSettingsPage;
 
@@ -638,17 +663,22 @@ exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
 /*!***********************************!*\
   !*** ./src/pages/storage_page.ts ***!
   \***********************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StoragePage = void 0;
+const assert_1 = __importDefault(__webpack_require__(/*! assert */ "assert"));
 class StoragePage {
     page;
     selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
     editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
+    encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
     ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
     addLvmVolumeLink = () => this.page.locator("::-p-text(Add LVM volume group)");
@@ -668,6 +698,12 @@ class StoragePage {
     }
     async verifyEncryptionEnabled() {
         await this.encryptionIsEnabledText().wait();
+    }
+    async verifyEncryptionDisabled() {
+        const elementText = await this.encryptionIsDisabledText()
+            .map((span) => span.textContent)
+            .wait();
+        await assert_1.default.deepEqual(elementText, "Encryption is disabled");
     }
     async manageDasd() {
         await this.manageDasdLink().click();

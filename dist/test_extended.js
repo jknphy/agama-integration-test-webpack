@@ -28,6 +28,60 @@ function decryptDevice(password) {
 
 /***/ }),
 
+/***/ "./src/checks/encryption.ts":
+/*!**********************************!*\
+  !*** ./src/checks/encryption.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.enableEncryption = enableEncryption;
+exports.verifyEncryptionEnabled = verifyEncryptionEnabled;
+exports.disableEncryption = disableEncryption;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const encryption_settings_page_1 = __webpack_require__(/*! ../pages/encryption_settings_page */ "./src/pages/encryption_settings_page.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const storage_page_1 = __webpack_require__(/*! ../pages/storage_page */ "./src/pages/storage_page.ts");
+function enableEncryption(password) {
+    (0, helpers_1.it)("should enable encryption", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const encryptionSettings = new encryption_settings_page_1.EncryptionSettingsPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.editEncryption();
+        await encryptionSettings.encryptTheSystem();
+        await encryptionSettings.fillPassword(password);
+        await encryptionSettings.fillPasswordConfirmation(password);
+        await encryptionSettings.accept();
+        await storage.verifyEncryptionEnabled();
+    });
+}
+function verifyEncryptionEnabled() {
+    (0, helpers_1.it)("should verify that encryption is enabled", async function () {
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.verifyEncryptionEnabled();
+    });
+}
+function disableEncryption() {
+    (0, helpers_1.it)("should disable encryption", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const encryptionSettings = new encryption_settings_page_1.EncryptionSettingsPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.editEncryption();
+        await encryptionSettings.toggleOffEncryption();
+        await encryptionSettings.accept();
+        await storage.verifyEncryptionDisabled();
+    });
+}
+
+
+/***/ }),
+
 /***/ "./src/checks/first_user.ts":
 /*!**********************************!*\
   !*** ./src/checks/first_user.ts ***!
@@ -841,6 +895,46 @@ exports.EncryptedDevice = EncryptedDevice;
 
 /***/ }),
 
+/***/ "./src/pages/encryption_settings_page.ts":
+/*!***********************************************!*\
+  !*** ./src/pages/encryption_settings_page.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EncryptionSettingsPage = void 0;
+class EncryptionSettingsPage {
+    page;
+    encryptTheSystemToggle = () => this.page.locator("::-p-text(Encrypt the system)");
+    passwordInput = () => this.page.locator("#password");
+    passwordConfirmationInput = () => this.page.locator("#passwordConfirmation");
+    acceptButton = () => this.page.locator("button::-p-text(Accept)");
+    constructor(page) {
+        this.page = page;
+    }
+    async encryptTheSystem() {
+        await this.encryptTheSystemToggle().click();
+    }
+    async fillPassword(password) {
+        await this.passwordInput().fill(password);
+    }
+    async fillPasswordConfirmation(password) {
+        await this.passwordConfirmationInput().fill(password);
+    }
+    async accept() {
+        await this.acceptButton().click();
+    }
+    async toggleOffEncryption() {
+        await this.encryptTheSystemToggle().click();
+    }
+}
+exports.EncryptionSettingsPage = EncryptionSettingsPage;
+
+
+/***/ }),
+
 /***/ "./src/pages/hostname_page.ts":
 /*!************************************!*\
   !*** ./src/pages/hostname_page.ts ***!
@@ -1235,17 +1329,22 @@ exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
 /*!***********************************!*\
   !*** ./src/pages/storage_page.ts ***!
   \***********************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StoragePage = void 0;
+const assert_1 = __importDefault(__webpack_require__(/*! assert */ "assert"));
 class StoragePage {
     page;
     selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
     editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
+    encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
     ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
     addLvmVolumeLink = () => this.page.locator("::-p-text(Add LVM volume group)");
@@ -1265,6 +1364,12 @@ class StoragePage {
     }
     async verifyEncryptionEnabled() {
         await this.encryptionIsEnabledText().wait();
+    }
+    async verifyEncryptionDisabled() {
+        const elementText = await this.encryptionIsDisabledText()
+            .map((span) => span.textContent)
+            .wait();
+        await assert_1.default.deepEqual(elementText, "Encryption is disabled");
     }
     async manageDasd() {
         await this.manageDasdLink().click();
@@ -1379,16 +1484,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
-const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
 const first_user_1 = __webpack_require__(/*! ./checks/first_user */ "./src/checks/first_user.ts");
-const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
-const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/checks/registration.ts");
-const hostname_1 = __webpack_require__(/*! ./checks/hostname */ "./src/checks/hostname.ts");
 const decryption_1 = __webpack_require__(/*! ./checks/decryption */ "./src/checks/decryption.ts");
-const storage_result_destructive_actions_planned_1 = __webpack_require__(/*! ./checks/storage_result_destructive_actions_planned */ "./src/checks/storage_result_destructive_actions_planned.ts");
-const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
+const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
+const encryption_1 = __webpack_require__(/*! ./checks/encryption */ "./src/checks/encryption.ts");
+const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/checks/registration.ts");
+const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
 const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
 const storage_zfcp_1 = __webpack_require__(/*! ./checks/storage_zfcp */ "./src/checks/storage_zfcp.ts");
+const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
+const hostname_1 = __webpack_require__(/*! ./checks/hostname */ "./src/checks/hostname.ts");
+const storage_result_destructive_actions_planned_1 = __webpack_require__(/*! ./checks/storage_result_destructive_actions_planned */ "./src/checks/storage_result_destructive_actions_planned.ts");
 // parse options from the command line
 const options = (0, cmdline_1.parse)((cmd) => cmd
     .option("--product-id <id>", "Product id to select a product to install", "none")
@@ -1396,6 +1502,7 @@ const options = (0, cmdline_1.parse)((cmd) => cmd
     .option("--registration-code <code>", "Registration code")
     .option("--staticHostname <hostname>", "Static Hostname")
     .option("--install", "Proceed to install the system (the default is not to install it)")
+    .option("--inst-register-url", "Custom registration url was provided by kernel cmdline")
     .option("--decrypt-password <password>", "Password to decrypt an existing encrypted partition")
     .option("--destructive-actions <actions>...", "comma separated list of actions (excluding 'Delete ')", cmdline_1.commaSeparatedList));
 (0, helpers_1.test_init)(options);
@@ -1409,8 +1516,14 @@ if (options.productId !== "none")
 (0, storage_result_destructive_actions_planned_1.verifyDecryptDestructiveActions)(options.destructiveActions);
 if (options.staticHostname)
     (0, hostname_1.setPermanentHostname)(options.staticHostname);
+(0, encryption_1.enableEncryption)(options.password);
 if (options.registrationCode)
-    (0, registration_1.enterRegistration)(options.registrationCode);
+    if (options.instRegisterUrl)
+        (0, registration_1.enterRegistrationRegUrl)(options.registrationCode);
+    else
+        (0, registration_1.enterRegistration)(options.registrationCode);
+(0, encryption_1.verifyEncryptionEnabled)();
+(0, encryption_1.disableEncryption)();
 (0, first_user_1.createFirstUser)(options.password);
 (0, root_authentication_1.editRootUser)(options.rootPassword);
 (0, root_authentication_1.verifyPasswordStrength)();
