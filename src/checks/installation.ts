@@ -1,8 +1,10 @@
+import assert from "node:assert/strict";
 import { it, page } from "../lib/helpers";
 import { ConfirmInstallationPage } from "../pages/confirm_installation_page";
 import { CongratulationPage } from "../pages/congratulation_page";
 import { OverviewPage } from "../pages/overview_page";
 import { SidebarPage } from "../pages/sidebar_page";
+import { InstallationPage } from "../pages/installation_page";
 
 export function performInstallation() {
   it("should start installation", async function () {
@@ -13,6 +15,17 @@ export function performInstallation() {
     await sidebar.goToOverview();
     await overview.install();
     await confirmInstallation.continue();
+  });
+
+  it("should check installation progress", async function () {
+    const installation = new InstallationPage(page);
+    assert.deepEqual(await installation.prepareDisks(), "Prepare disks");
+    assert.deepEqual(
+      await installation.installingSystem(),
+      "Installing the system, please wait...",
+    );
+    assert.deepEqual(await installation.installSoftware(), "Install software");
+    assert.deepEqual(await installation.configureTheSystem(), "Configure the system");
   });
 
   it(

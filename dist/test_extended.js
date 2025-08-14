@@ -93,18 +93,23 @@ function setPermanentHostname(hostname) {
 /*!************************************!*\
   !*** ./src/checks/installation.ts ***!
   \************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.performInstallation = performInstallation;
 exports.finishInstallation = finishInstallation;
+const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const confirm_installation_page_1 = __webpack_require__(/*! ../pages/confirm_installation_page */ "./src/pages/confirm_installation_page.ts");
 const congratulation_page_1 = __webpack_require__(/*! ../pages/congratulation_page */ "./src/pages/congratulation_page.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const installation_page_1 = __webpack_require__(/*! ../pages/installation_page */ "./src/pages/installation_page.ts");
 function performInstallation() {
     (0, helpers_1.it)("should start installation", async function () {
         const confirmInstallation = new confirm_installation_page_1.ConfirmInstallationPage(helpers_1.page);
@@ -113,6 +118,13 @@ function performInstallation() {
         await sidebar.goToOverview();
         await overview.install();
         await confirmInstallation.continue();
+    });
+    (0, helpers_1.it)("should check installation progress", async function () {
+        const installation = new installation_page_1.InstallationPage(helpers_1.page);
+        strict_1.default.deepEqual(await installation.prepareDisks(), "Prepare disks");
+        strict_1.default.deepEqual(await installation.installingSystem(), "Installing the system, please wait...");
+        strict_1.default.deepEqual(await installation.installSoftware(), "Install software");
+        strict_1.default.deepEqual(await installation.configureTheSystem(), "Configure the system");
     });
     (0, helpers_1.it)("should finish installation", async function () {
         await new congratulation_page_1.CongratulationPage(helpers_1.page).wait(14 * 60 * 1000);
@@ -886,6 +898,51 @@ class HostnamePage {
     }
 }
 exports.HostnamePage = HostnamePage;
+
+
+/***/ }),
+
+/***/ "./src/pages/installation_page.ts":
+/*!****************************************!*\
+  !*** ./src/pages/installation_page.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InstallationPage = void 0;
+class InstallationPage {
+    page;
+    prepareDisksText = () => this.page.locator("::-p-text(Prepare disks)");
+    installingSystemText = () => this.page.locator("::-p-text(Installing the system, please wait...)");
+    installSoftwareText = () => this.page.locator("::-p-text(Install software)");
+    configureTheSystemText = () => this.page.locator("::-p-text(Configure the system)");
+    constructor(page) {
+        this.page = page;
+    }
+    async prepareDisks() {
+        return await this.prepareDisksText()
+            .map((element) => element.textContent)
+            .wait();
+    }
+    async installingSystem() {
+        return await this.installingSystemText()
+            .map((element) => element.textContent)
+            .wait();
+    }
+    async installSoftware() {
+        return await this.installSoftwareText()
+            .map((element) => element.textContent)
+            .wait();
+    }
+    async configureTheSystem() {
+        return await this.configureTheSystemText()
+            .map((element) => element.textContent)
+            .wait();
+    }
+}
+exports.InstallationPage = InstallationPage;
 
 
 /***/ }),
