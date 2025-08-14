@@ -8,6 +8,9 @@ export class StoragePage {
   private readonly encryptionIsEnabledText = () =>
     this.page.locator("::-p-text(Encryption is enabled)");
 
+  private readonly encryptionIsDisabledText = () =>
+    this.page.locator("::-p-text(Encryption is disabled)");
+
   private readonly manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
 
   private readonly ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
@@ -36,6 +39,10 @@ export class StoragePage {
 
   async verifyEncryptionEnabled() {
     await this.encryptionIsEnabledText().wait();
+  }
+
+  async verifyEncryptionDisabled() {
+    await this.encryptionIsDisabledText().wait();
   }
 
   async manageDasd() {

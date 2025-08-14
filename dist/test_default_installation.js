@@ -1183,6 +1183,7 @@ class StoragePage {
     selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
     editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
+    encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
     ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
     addLvmVolumeLink = () => this.page.locator("::-p-text(Add LVM volume group)");
@@ -1202,6 +1203,9 @@ class StoragePage {
     }
     async verifyEncryptionEnabled() {
         await this.encryptionIsEnabledText().wait();
+    }
+    async verifyEncryptionDisabled() {
+        await this.encryptionIsDisabledText().wait();
     }
     async manageDasd() {
         await this.manageDasdLink().click();
