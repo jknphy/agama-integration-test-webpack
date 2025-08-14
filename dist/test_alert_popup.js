@@ -384,20 +384,27 @@ var Desktop;
 /*!***************************************!*\
   !*** ./src/pages/alert_popup_page.ts ***!
   \***************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AlertPopupPage = void 0;
+const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
 class AlertPopupPage {
     page;
-    warningAlertHeading = () => this.page.locator(`::-p-text(It was not possible to load the configuration)`);
+    alertWarningMsg = () => this.page.locator("::-p-text(It was not possible to load the configuration)");
     constructor(page) {
         this.page = page;
     }
     async verifyInvalidUrl() {
-        await this.warningAlertHeading().wait();
+        const elementText = await this.alertWarningMsg()
+            .map((span) => span.textContent)
+            .wait();
+        await strict_1.default.match(elementText, /It was not possible to load the configuration/);
     }
 }
 exports.AlertPopupPage = AlertPopupPage;
