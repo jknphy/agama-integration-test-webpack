@@ -1,6 +1,10 @@
 import { it, page } from "../lib/helpers";
 import { OverviewPage } from "../pages/overview_page";
-import { ProductRegistrationPage, ExtensionHaRegistrationPage } from "../pages/registration_page";
+import {
+  ProductRegistrationPage,
+  ExtensionHaRegistrationPage,
+  CustomRegistrationPage,
+} from "../pages/registration_page";
 
 import { SidebarWithRegistrationPage } from "../pages/sidebar_page";
 
@@ -31,20 +35,39 @@ export function enterRegistrationHa(code: string) {
   });
 }
 
-export function enterRegistrationRegUrl(code?: string) {
+export function enterRegistrationRegUrl(code: string) {
   it("should allow setting registration", async function () {
     const sidebar = new SidebarWithRegistrationPage(page);
-    const productRegistration = new ProductRegistrationPage(page);
+    const productRegistration = new CustomRegistrationPage(page);
 
     await sidebar.goToRegistration();
-    if (code) {
-      await productRegistration.provideRegistrationCode();
-      await productRegistration.fillCode(code);
-    }
+    await productRegistration.provideRegistrationCode();
+    await productRegistration.fillCode(code);
     await productRegistration.register();
   });
 
   it("should display Overview", async function () {
     await new OverviewPage(page).waitVisible(40000);
+  });
+}
+
+export function enterCustomRegistrationServer(url: string) {
+  it("should allow setting custom registration", async function () {
+    const sidebar = new SidebarWithRegistrationPage(page);
+    const rmtRegistration = new CustomRegistrationPage(page);
+
+    await sidebar.goToRegistration();
+    await rmtRegistration.selectCustomRegistrationServer();
+    await rmtRegistration.fillServerUrl(url);
+    await rmtRegistration.register();
+    await new OverviewPage(page).waitVisible(40000);
+  });
+
+  it("should display product has been registered in registration page", async function () {
+    const sidebar = new SidebarWithRegistrationPage(page);
+    const rmtRegistration = new CustomRegistrationPage(page);
+
+    await sidebar.goToRegistration();
+    await rmtRegistration.verifyCustomRegistration();
   });
 }
