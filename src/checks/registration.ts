@@ -3,9 +3,11 @@ import { OverviewPage } from "../pages/overview_page";
 import {
   ProductRegistrationPage,
   ExtensionHaRegistrationPage,
+  ExtensionPhubRegistrationPage,
   CustomRegistrationPage,
 } from "../pages/registration_page";
 
+import { TurstKeyPage } from "../pages/trust_key_page";
 import { SidebarWithRegistrationPage } from "../pages/sidebar_page";
 
 export function enterRegistration(code: string) {
@@ -69,5 +71,18 @@ export function enterCustomRegistrationServer(url: string) {
 
     await sidebar.goToRegistration();
     await customRegistration.verifyCustomRegistration();
+  });
+}
+
+export function registerPackageHub() {
+  it("should allow register packagehub", async function () {
+    const sidebar = new SidebarWithRegistrationPage(page);
+    const extensionRegistration = new ExtensionPhubRegistrationPage(page);
+    const packagehubTrustKey = new TurstKeyPage(page);
+
+    await sidebar.goToRegistration();
+    await extensionRegistration.register();
+    await packagehubTrustKey.trustKey();
+    await extensionRegistration.verifyExtensionRegistration();
   });
 }
