@@ -8,16 +8,17 @@
 import { parse, commaSeparatedList } from "./lib/cmdline";
 import { test_init } from "./lib/helpers";
 
-import { logIn } from "./checks/login";
 import { createFirstUser } from "./checks/first_user";
-import { editRootUser, verifyPasswordStrength } from "./checks/root_authentication";
-import { enterRegistration } from "./checks/registration";
-import { setPermanentHostname } from "./checks/hostname";
 import { decryptDevice } from "./checks/decryption";
-import { verifyDecryptDestructiveActions } from "./checks/storage_result_destructive_actions_planned";
-import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
+import { editRootUser, verifyPasswordStrength } from "./checks/root_authentication";
+import { enableEncryption, verifyEncryptionEnabled, disableEncryption } from "./checks/encryption";
+import { enterRegistration, enterRegistrationRegUrl } from "./checks/registration";
+import { logIn } from "./checks/login";
 import { performInstallation } from "./checks/installation";
 import { prepareZfcpStorage } from "./checks/storage_zfcp";
+import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
+import { setPermanentHostname } from "./checks/hostname";
+import { verifyDecryptDestructiveActions } from "./checks/storage_result_destructive_actions_planned";
 
 // parse options from the command line
 const options = parse((cmd) =>
@@ -30,6 +31,7 @@ const options = parse((cmd) =>
     .option("--registration-code <code>", "Registration code")
     .option("--staticHostname <hostname>", "Static Hostname")
     .option("--install", "Proceed to install the system (the default is not to install it)")
+    .option("--inst-register-url", "Custom registration url was provided by kernel cmdline")
     .option("--decrypt-password <password>", "Password to decrypt an existing encrypted partition")
     .option(
       "--destructive-actions <actions>...",
@@ -46,7 +48,12 @@ if (options.productId !== "none")
 decryptDevice(options.decryptPassword);
 verifyDecryptDestructiveActions(options.destructiveActions);
 if (options.staticHostname) setPermanentHostname(options.staticHostname);
-if (options.registrationCode) enterRegistration(options.registrationCode);
+enableEncryption(options.password);
+if (options.registrationCode)
+  if (options.instRegisterUrl) enterRegistrationRegUrl(options.registrationCode);
+  else enterRegistration(options.registrationCode);
+verifyEncryptionEnabled();
+disableEncryption();
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
 verifyPasswordStrength();

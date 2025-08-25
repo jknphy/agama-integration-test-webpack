@@ -28,4 +28,8 @@ export class EncryptionSettingsPage {
   async accept() {
     await this.acceptButton().click();
   }
+
+  async toggleOffEncryption() {
+    await this.encryptTheSystemToggle().click();
+  }
 }

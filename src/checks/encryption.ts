@@ -18,3 +18,27 @@ export function enableEncryption(password: string) {
     await storage.verifyEncryptionEnabled();
   });
 }
+
+export function verifyEncryptionEnabled() {
+  it("should verify that encryption is enabled", async function () {
+    const sidebar = new SidebarPage(page);
+    const storage = new StoragePage(page);
+
+    await sidebar.goToStorage();
+    await storage.verifyEncryptionEnabled();
+  });
+}
+
+export function disableEncryption() {
+  it("should disable encryption", async function () {
+    const storage = new StoragePage(page);
+    const encryptionSettings = new EncryptionSettingsPage(page);
+    const sidebar = new SidebarPage(page);
+
+    await sidebar.goToStorage();
+    await storage.editEncryption();
+    await encryptionSettings.toggleOffEncryption();
+    await encryptionSettings.accept();
+    await storage.verifyEncryptionDisabled();
+  });
+}
