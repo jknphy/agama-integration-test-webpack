@@ -3,6 +3,7 @@ import { ConfirmInstallationPage } from "../pages/confirm_installation_page";
 import { CongratulationPage } from "../pages/congratulation_page";
 import { OverviewPage } from "../pages/overview_page";
 import { SidebarPage } from "../pages/sidebar_page";
+import { InstallationPage } from "../pages/installation_page";
 
 export function performInstallation() {
   it("should start installation", async function () {
@@ -13,6 +14,15 @@ export function performInstallation() {
     await sidebar.goToOverview();
     await overview.install();
     await confirmInstallation.continue();
+  });
+
+  it("should check installation progress", async function () {
+    const installation = new InstallationPage(page);
+
+    await installation.validatePrepareDisks("Prepare disks");
+    await installation.validateInstallingSystem("Installing the system, please wait...");
+    await installation.validateInstallSoftware("Install software");
+    await installation.validateConfigureTheSystem("Configure the system");
   });
 
   it(

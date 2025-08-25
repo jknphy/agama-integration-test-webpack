@@ -77,6 +77,7 @@ const confirm_installation_page_1 = __webpack_require__(/*! ../pages/confirm_ins
 const congratulation_page_1 = __webpack_require__(/*! ../pages/congratulation_page */ "./src/pages/congratulation_page.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const installation_page_1 = __webpack_require__(/*! ../pages/installation_page */ "./src/pages/installation_page.ts");
 function performInstallation() {
     (0, helpers_1.it)("should start installation", async function () {
         const confirmInstallation = new confirm_installation_page_1.ConfirmInstallationPage(helpers_1.page);
@@ -85,6 +86,13 @@ function performInstallation() {
         await sidebar.goToOverview();
         await overview.install();
         await confirmInstallation.continue();
+    });
+    (0, helpers_1.it)("should check installation progress", async function () {
+        const installation = new installation_page_1.InstallationPage(helpers_1.page);
+        await installation.validatePrepareDisks("Prepare disks");
+        await installation.validateInstallingSystem("Installing the system, please wait...");
+        await installation.validateInstallSoftware("Install software");
+        await installation.validateConfigureTheSystem("Configure the system");
     });
     (0, helpers_1.it)("should finish installation", async function () {
         await new congratulation_page_1.CongratulationPage(helpers_1.page).wait(14 * 60 * 1000);
@@ -811,6 +819,55 @@ class CreateFirstUserPage {
     }
 }
 exports.CreateFirstUserPage = CreateFirstUserPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/installation_page.ts":
+/*!****************************************!*\
+  !*** ./src/pages/installation_page.ts ***!
+  \****************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InstallationPage = void 0;
+const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
+class InstallationPage {
+    page;
+    prepareDisksText = () => this.page.locator("::-p-text(Prepare disks)");
+    installingSystemText = () => this.page.locator(`::-p-text(Installing the system, please wait...)`);
+    installSoftwareText = () => this.page.locator(`::-p-text(Install software)`);
+    configureTheSystemText = () => this.page.locator(`::-p-text(Configure the system)`);
+    constructor(page) {
+        this.page = page;
+    }
+    async validatePrepareDisks(expectedText) {
+        strict_1.default.deepEqual(await this.prepareDisksText()
+            .map((element) => element.textContent)
+            .wait(), expectedText);
+    }
+    async validateInstallingSystem(expectedText) {
+        strict_1.default.deepEqual(await this.installingSystemText()
+            .map((element) => element.textContent)
+            .wait(), expectedText);
+    }
+    async validateInstallSoftware(expectedText) {
+        strict_1.default.deepEqual(await this.installSoftwareText()
+            .map((element) => element.textContent)
+            .wait(), expectedText);
+    }
+    async validateConfigureTheSystem(expectedText) {
+        strict_1.default.deepEqual(await this.configureTheSystemText()
+            .map((element) => element.textContent)
+            .wait(), expectedText);
+    }
+}
+exports.InstallationPage = InstallationPage;
 
 
 /***/ }),
