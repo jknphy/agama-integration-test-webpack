@@ -28,6 +28,7 @@ const options = parse((cmd) =>
       "Accept license for a product with license (the default is a product without license)",
     )
     .option("--registration-code <code>", "Registration code")
+    .option("--provide-registration-code", "provide registration code for customer registration")
     .option("--staticHostname <hostname>", "Static Hostname")
     .option("--install", "Proceed to install the system (the default is not to install it)")
     .option("--decrypt-password <password>", "Password to decrypt an existing encrypted partition")
@@ -46,7 +47,11 @@ if (options.productId !== "none")
 decryptDevice(options.decryptPassword);
 verifyDecryptDestructiveActions(options.destructiveActions);
 if (options.staticHostname) setPermanentHostname(options.staticHostname);
-if (options.registrationCode) enterRegistration(options.registrationCode);
+if (options.registrationCode)
+  enterRegistration({
+    code: options.registrationCode,
+    provide_code: options.provideRegistrationCodei,
+  });
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
 verifyPasswordStrength();
