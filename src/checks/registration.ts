@@ -4,8 +4,10 @@ import {
   ProductRegistrationPage,
   ExtensionHaRegistrationPage,
   CustomRegistrationPage,
+  ExtensionPhubRegistrationPage,
 } from "../pages/registration_page";
 
+import { TrustKeyPage } from "../pages/trust_key_page";
 import { SidebarWithRegistrationPage } from "../pages/sidebar_page";
 
 interface RegistratinOptions {
@@ -60,6 +62,19 @@ export function enterRegistrationHa(code: string) {
     await sidebar.goToRegistration();
     await extensionRegistration.fillCode(code);
     await extensionRegistration.register();
+    await extensionRegistration.verifyExtensionRegistration();
+  });
+}
+
+export function registerPackageHub() {
+  it("should allow register packagehub", async function () {
+    const sidebar = new SidebarWithRegistrationPage(page);
+    const extensionRegistration = new ExtensionPhubRegistrationPage(page);
+    const packagehubTrustKey = new TrustKeyPage(page);
+
+    await sidebar.goToRegistration();
+    await extensionRegistration.register();
+    await packagehubTrustKey.trustKey();
     await extensionRegistration.verifyExtensionRegistration();
   });
 }

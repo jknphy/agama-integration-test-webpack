@@ -12,7 +12,7 @@ import { Option } from "commander";
 import { createFirstUser } from "./checks/first_user";
 import { editRootUser } from "./checks/root_authentication";
 import { ensureProductConfigurationStarted } from "./checks/configuration_started";
-import { enterRegistration, enterRegistrationHa } from "./checks/registration";
+import { enterRegistration, enterRegistrationHa, registerPackageHub } from "./checks/registration";
 import { logIn } from "./checks/login";
 import { performInstallation, finishInstallation } from "./checks/installation";
 import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
@@ -29,6 +29,7 @@ const options = parse((cmd) =>
     )
     .option("--registration-code <code>", "Registration code")
     .option("--registration-code-ha <code>", "Registration code for Extension High Availability")
+    .option("--register-package-hub", "Registration for PackageHub")
     .option("--patterns <pattern>...", "comma-separated list of patterns", commaSeparatedList)
     .option("--install", "Proceed to install the system (the default is not to install it)")
     .option("--use-custom-registration-server", "Enable custom registration server")
@@ -55,6 +56,7 @@ if (options.registrationCode)
     provide_code: options.provideRegistrationCode,
   });
 if (options.registrationCodeHa) enterRegistrationHa(options.registrationCodeHa);
+if (options.registerPackageHub) registerPackageHub();
 if (options.patterns) selectPatterns(options.patterns);
 createFirstUser(options.password);
 editRootUser(options.rootPassword);

@@ -39,16 +39,29 @@ class RegistrationBasePage {
       /SUSE Linux Enterprise Server.*has been registered with below information/,
     );
   }
+
+  protected readonly extensionRegisteredText = () =>
+    this.page.locator("::-p-text(The extension was registered without any registration code)");
+
+  async verifyExtensionRegistration() {
+    await this.extensionRegisteredText().wait();
+  }
 }
 
 function ExtensionHaRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
   return class extends Base {
-    extensionRegisteredText = () =>
+    protected readonly extensionRegisteredText = () =>
       this.page.locator("::-p-text(The extension has been registered)");
 
-    async verifyExtensionRegistration() {
-      await this.extensionRegisteredText().wait();
-    }
+    protected readonly registerButton = () =>
+      this.page.locator("::-p-aria(Register)[type='submit']");
+  };
+}
+
+function ExtensionPhubRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
+  return class extends Base {
+    protected readonly registerButton = () =>
+      this.page.locator("::-p-aria(Register)[type='button']");
   };
 }
 
@@ -86,3 +99,4 @@ function CustomRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Bas
 export class ProductRegistrationPage extends RegistrationBasePage {}
 export class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {}
 export class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {}
+export class ExtensionPhubRegistrationPage extends ExtensionPhubRegistrable(RegistrationBasePage) {}
