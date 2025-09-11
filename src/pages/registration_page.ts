@@ -50,16 +50,6 @@ function ExtensionHaRegistrable<TBase extends GConstructor<RegistrationBasePage>
   };
 }
 
-function ExtensionPhubRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
-  return class extends Base {
-    protected readonly registerButton = () =>
-      this.page.locator("[id*='register-button-PackageHub']");
-
-    readonly extensionRegisteredText = () =>
-      this.page.locator("::-p-text(The extension was registered without any registration code)");
-  };
-}
-
 function CustomRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Base: TBase) {
   return class extends Base {
     private readonly registrationServerButton = () =>
@@ -94,4 +84,3 @@ function CustomRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Bas
 export class ProductRegistrationPage extends RegistrationBasePage {}
 export class ExtensionHaRegistrationPage extends ExtensionHaRegistrable(RegistrationBasePage) {}
 export class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {}
-export class ExtensionPhubRegistrationPage extends ExtensionPhubRegistrable(RegistrationBasePage) {}

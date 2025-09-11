@@ -101,6 +101,7 @@ exports.registerPackageHub = registerPackageHub;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const registration_page_1 = __webpack_require__(/*! ../pages/registration_page */ "./src/pages/registration_page.ts");
+const phub_page_1 = __webpack_require__(/*! ../pages/phub_page */ "./src/pages/phub_page.ts");
 const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
 const trust_key_page_1 = __webpack_require__(/*! ../pages/trust_key_page */ "./src/pages/trust_key_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
@@ -146,13 +147,13 @@ function enterRegistrationHa(code) {
 function registerPackageHub() {
     (0, helpers_1.it)("should allow register PackageHub", async function () {
         const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
-        const extensionRegistration = new registration_page_1.ExtensionPhubRegistrationPage(helpers_1.page);
+        const PhubRegistration = new phub_page_1.PhubPage(helpers_1.page);
         const packagehubTrustKey = new trust_key_page_1.TrustKeyPage(helpers_1.page);
         await sidebar.goToRegistration();
-        await extensionRegistration.register();
+        await PhubRegistration.register();
         strict_1.default.match(await (0, helpers_1.getTextContent)(packagehubTrustKey.trustKeyText()), /is unknown. Do you want to trust this key?/);
         await packagehubTrustKey.trustKey();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(extensionRegistration.extensionRegisteredText()), "The extension was registered without any registration code.");
+        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(PhubRegistration.registeredText()), "The extension was registered without any registration code.");
     });
 }
 
@@ -622,6 +623,32 @@ exports.OverviewPage = OverviewPage;
 
 /***/ }),
 
+/***/ "./src/pages/phub_page.ts":
+/*!********************************!*\
+  !*** ./src/pages/phub_page.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PhubPage = void 0;
+class PhubPage {
+    page;
+    registerButton = () => this.page.locator("[id*='register-button-PackageHub']");
+    registeredText = () => this.page.locator("::-p-text(The extension was registered without any registration code)");
+    constructor(page) {
+        this.page = page;
+    }
+    async register() {
+        await this.registerButton().click();
+    }
+}
+exports.PhubPage = PhubPage;
+
+
+/***/ }),
+
 /***/ "./src/pages/registration_page.ts":
 /*!****************************************!*\
   !*** ./src/pages/registration_page.ts ***!
@@ -634,7 +661,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ExtensionPhubRegistrationPage = exports.CustomRegistrationPage = exports.ExtensionHaRegistrationPage = exports.ProductRegistrationPage = void 0;
+exports.CustomRegistrationPage = exports.ExtensionHaRegistrationPage = exports.ProductRegistrationPage = void 0;
 const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
 class RegistrationBasePage {
     page;
@@ -667,12 +694,6 @@ function ExtensionHaRegistrable(Base) {
         registerButton = () => this.page.locator("[id*='register-button-sle-ha']");
     };
 }
-function ExtensionPhubRegistrable(Base) {
-    return class extends Base {
-        registerButton = () => this.page.locator("[id*='register-button-PackageHub']");
-        extensionRegisteredText = () => this.page.locator("::-p-text(The extension was registered without any registration code)");
-    };
-}
 function CustomRegistrable(Base) {
     return class extends Base {
         registrationServerButton = () => this.page.locator("::-p-aria(Registration server)");
@@ -702,9 +723,6 @@ exports.ExtensionHaRegistrationPage = ExtensionHaRegistrationPage;
 class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {
 }
 exports.CustomRegistrationPage = CustomRegistrationPage;
-class ExtensionPhubRegistrationPage extends ExtensionPhubRegistrable(RegistrationBasePage) {
-}
-exports.ExtensionPhubRegistrationPage = ExtensionPhubRegistrationPage;
 
 
 /***/ }),
