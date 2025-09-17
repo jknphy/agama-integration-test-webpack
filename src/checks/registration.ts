@@ -6,6 +6,8 @@ import {
   CustomRegistrationPage,
   ExtensionPhubRegistrationPage,
 } from "../pages/registration_page";
+import { ConnectionToRegistrationServerFailedAlert } from "../pages/connection_to_registration_server_failed_alert";
+
 import assert from "node:assert/strict";
 
 import { TrustKeyPage } from "../pages/trust_key_page";
@@ -87,5 +89,36 @@ export function registerPackageHub() {
       await getTextContent(extensionRegistration.extensionRegisteredText()),
       "The extension was registered without any registration code.",
     );
+  });
+}
+
+export function registrationWarningAlert() {
+  const productRegistration = new ProductRegistrationPage(page);
+  const customRegistration = new CustomRegistrationPage(page);
+  const serverFailedAlertPage = new ConnectionToRegistrationServerFailedAlert(page);
+  const invalid_regcode = "123XX432";
+
+  it(`should popup register warning alert for invalid registration code`, async function () {
+    await productRegistration.fillCode(invalid_regcode);
+    await productRegistration.register();
+    assert.deepEqual(
+      await getTextContent(serverFailedAlertPage.connectionToRegistrationServerFailedText()),
+      "Connection to registration server failed: Unknown Registration Code.",
+    );
+  });
+
+  const invalidUrls = ["http://scc.example.net", "https://scc.example.net"];
+  invalidUrls.forEach((invalidUrl) => {
+    const protocol = invalidUrl.startsWith("https") ? "https" : "http";
+    it(`should popup register warning alert for invalid ${protocol} registration server`, async function () {
+      await customRegistration.selectCustomRegistrationServer();
+      await customRegistration.fillServerUrl(invalidUrl);
+      await productRegistration.register();
+
+      assert.match(
+        await getTextContent(serverFailedAlertPage.connectionToRegistrationServerFailedText()),
+        /Connection to registration server failed: dial tcp: lookup .+ on .+: no such host \(network error\)/,
+      );
+    });
   });
 }
