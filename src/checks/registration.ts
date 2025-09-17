@@ -4,8 +4,8 @@ import {
   ProductRegistrationPage,
   ExtensionHaRegistrationPage,
   CustomRegistrationPage,
-  ExtensionPhubRegistrationPage,
 } from "../pages/registration_page";
+import { PhubPage } from "../pages/phub_page";
 import assert from "node:assert/strict";
 
 import { TrustKeyPage } from "../pages/trust_key_page";
@@ -73,18 +73,18 @@ export function enterRegistrationHa(code: string) {
 export function registerPackageHub() {
   it("should allow register PackageHub", async function () {
     const sidebar = new SidebarWithRegistrationPage(page);
-    const extensionRegistration = new ExtensionPhubRegistrationPage(page);
+    const PhubRegistration = new PhubPage(page);
     const packagehubTrustKey = new TrustKeyPage(page);
 
     await sidebar.goToRegistration();
-    await extensionRegistration.register();
+    await PhubRegistration.register();
     assert.match(
       await getTextContent(packagehubTrustKey.trustKeyText()),
       /is unknown. Do you want to trust this key?/,
     );
     await packagehubTrustKey.trustKey();
     assert.deepEqual(
-      await getTextContent(extensionRegistration.extensionRegisteredText()),
+      await getTextContent(PhubRegistration.registeredText()),
       "The extension was registered without any registration code.",
     );
   });
