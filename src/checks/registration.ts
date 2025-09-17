@@ -1,4 +1,4 @@
-import { it, page, getTextContent } from "../lib/helpers";
+import { it, page, getTextContent, dumpPage } from "../lib/helpers";
 import { OverviewPage } from "../pages/overview_page";
 import {
   ProductRegistrationPage,
@@ -107,6 +107,86 @@ export function registerPackageHub() {
     assert.deepEqual(
       await getTextContent(extensionRegistration.extensionRegisteredText()),
       "The extension was registered without any registration code.",
+    );
+  });
+}
+
+export function registrationWarningAlert() {
+  it("should show warning alert for invalid registration code, registration server and null registration code", async function () {
+    const sidebar = new SidebarWithRegistrationPage(page);
+    const customRegistration = new CustomRegistrationPage(page);
+    const invalid_regcode = "123XX432";
+    let originalCustomServer: string | null = null;
+    const logDir = "/run/agama/scripts";
+
+    await sidebar.goToRegistration();
+    const isCustomServer = (await page.$("#url")) !== null;
+    if (isCustomServer) {
+      originalCustomServer = await page.$eval('input[type="text"][id="url"]', (el) => el.value);
+      await customRegistration.selectProvideRegistrationCode();
+    }
+    await customRegistration.fillCode(invalid_regcode);
+    await customRegistration.register();
+    assert.deepEqual(
+      await getTextContent(customRegistration.connectionToRegistrationServerFailedText()),
+      "Warning alert:Connection to registration server failed: Unknown Registration Code.",
+    );
+
+    const invalidUrls = ["http://scc.example.net", "https://scc.example.net"];
+    for (const invalidUrl of invalidUrls) {
+      await customRegistration.selectCustomRegistrationServer();
+      await customRegistration.fillServerUrl(invalidUrl);
+      await customRegistration.register();
+
+      assert.match(
+        await getTextContent(customRegistration.connectionToRegistrationServerFailedText()),
+        /Connection to registration server failed: dial tcp: lookup .+ on .+: no such host \(network error\)/,
+      );
+    }
+
+    console.log("--->we are here");
+    if (originalCustomServer) {
+      await customRegistration.fillServerUrl(originalCustomServer);
+      await customRegistration.selectProvideRegistrationCode();
+    } else {
+      await customRegistration.selectSUSERegistrationServer();
+      console.log("1111 before customRegistration.fillCode");
+      dumpPage(logDir, "111_before");
+      await customRegistration.fillCode("");
+      console.log("222 after customRegistration.fillCode");
+      dumpPage(logDir, "22_after");
+    }
+    console.log("before click register");
+    await customRegistration.register();
+    dumpPage(logDir, "333_after_register");
+
+    if (originalCustomServer) {
+      assert.deepEqual(
+        await getTextContent(customRegistration.connectionToRegistrationServerFailedText()),
+        "Warning alert:Connection to registration server failed: Please provide Registration Code.",
+      );
+    } else {
+      console.log("We are at last here");
+      assert.deepEqual(
+        await getTextContent(customRegistration.checkTheFollowingBeforeContinuingText()),
+        "Warning alert:Check the following before continuing Enter a registration code",
+      );
+    }
+  });
+}
+
+export function registrationHaWarningAlert() {
+  it("should should show registration warining for invalid HA registration code", async function () {
+    const sidebar = new SidebarWithRegistrationPage(page);
+    const extensionRegistration = new ExtensionHaRegistrationPage(page);
+    const invalidHARegistrationCode = "12345ABCDX";
+
+    await sidebar.goToRegistration();
+    await extensionRegistration.fillCode(invalidHARegistrationCode);
+    await extensionRegistration.register();
+    assert.deepEqual(
+      await getTextContent(extensionRegistration.connectionToRegistrationServerFailedText()),
+      `Warning alert:Connection to registration server failed: No subscription with registration code '${invalidHARegistrationCode}' found`,
     );
   });
 }
