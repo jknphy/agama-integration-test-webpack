@@ -204,9 +204,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enterRegistration = enterRegistration;
 exports.enterRegistrationHa = enterRegistrationHa;
 exports.registerPackageHub = registerPackageHub;
+exports.registrationWarningAlert = registrationWarningAlert;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
 const registration_page_1 = __webpack_require__(/*! ../pages/registration_page */ "./src/pages/registration_page.ts");
+const connection_to_registration_server_failed_alert_1 = __webpack_require__(/*! ../pages/connection_to_registration_server_failed_alert */ "./src/pages/connection_to_registration_server_failed_alert.ts");
 const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
 const trust_key_page_1 = __webpack_require__(/*! ../pages/trust_key_page */ "./src/pages/trust_key_page.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
@@ -259,6 +261,39 @@ function registerPackageHub() {
         strict_1.default.match(await (0, helpers_1.getTextContent)(packagehubTrustKey.trustKeyText()), /is unknown. Do you want to trust this key?/);
         await packagehubTrustKey.trustKey();
         strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(extensionRegistration.extensionRegisteredText()), "The extension was registered without any registration code.");
+    });
+}
+function registrationWarningAlert(ha) {
+    const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
+    const customRegistration = new registration_page_1.CustomRegistrationPage(helpers_1.page);
+    const serverFailedAlertPage = new connection_to_registration_server_failed_alert_1.ConnectionToRegistrationServerFailedAlert(helpers_1.page);
+    const invalid_regcode = "123XX432";
+    if (ha) {
+        (0, helpers_1.it)("should popup registration errror for invalid HA registration code", async function () {
+            const extensionRegistration = new registration_page_1.ExtensionHaRegistrationPage(helpers_1.page);
+            const invalidHARegistrationCode = "12345ABCDX";
+            await sidebar.goToRegistration();
+            await extensionRegistration.fillCode(invalidHARegistrationCode);
+            await extensionRegistration.register();
+            strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(extensionRegistration.extensionRegisteredText()), `Connection to registration server failed: No subscription with registration code '${invalidHARegistrationCode}' found`);
+        });
+        return;
+    }
+    (0, helpers_1.it)("should popup register warning alert for invalid registration code", async function () {
+        await sidebar.goToRegistration();
+        await customRegistration.fillCode(invalid_regcode);
+        await customRegistration.register();
+        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(serverFailedAlertPage.connectionToRegistrationServerFailedText()), "Connection to registration server failed: Unknown Registration Code.");
+    });
+    (0, helpers_1.it)("should popup register warning alert for invalid registration server", async function () {
+        const invalidUrls = ["http://scc.example.net", "https://scc.example.net"];
+        await sidebar.goToRegistration();
+        for (const invalidUrl of invalidUrls) {
+            await customRegistration.selectCustomRegistrationServer();
+            await customRegistration.fillServerUrl(invalidUrl);
+            await customRegistration.register();
+            strict_1.default.match(await (0, helpers_1.getTextContent)(serverFailedAlertPage.connectionToRegistrationServerFailedText()), /Connection to registration server failed: dial tcp: lookup .+ on .+: no such host \(network error\)/);
+        }
     });
 }
 
@@ -806,6 +841,28 @@ class CongratulationPage {
     }
 }
 exports.CongratulationPage = CongratulationPage;
+
+
+/***/ }),
+
+/***/ "./src/pages/connection_to_registration_server_failed_alert.ts":
+/*!*********************************************************************!*\
+  !*** ./src/pages/connection_to_registration_server_failed_alert.ts ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConnectionToRegistrationServerFailedAlert = void 0;
+class ConnectionToRegistrationServerFailedAlert {
+    page;
+    constructor(page) {
+        this.page = page;
+    }
+    connectionToRegistrationServerFailedText = () => this.page.locator("::-p-text(Connection to registration server failed:)");
+}
+exports.ConnectionToRegistrationServerFailedAlert = ConnectionToRegistrationServerFailedAlert;
 
 
 /***/ }),
