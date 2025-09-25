@@ -448,6 +448,52 @@ function verifyPasswordStrength() {
 
 /***/ }),
 
+/***/ "./src/checks/storage_change_device_to_install.ts":
+/*!********************************************************!*\
+  !*** ./src/checks/storage_change_device_to_install.ts ***!
+  \********************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.changeDeviceToInstall = changeDeviceToInstall;
+const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
+const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
+const select_device_to_install_page_1 = __webpack_require__(/*! ../pages/select_device_to_install_page */ "./src/pages/select_device_to_install_page.ts");
+const storage_page_1 = __webpack_require__(/*! ../pages/storage_page */ "./src/pages/storage_page.ts");
+function changeDeviceToInstall() {
+    (0, helpers_1.it)("should change device to install for storage space warning test", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const selectDev = new select_device_to_install_page_1.SelectDeviceToInstallPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.changeDevice();
+        await storage.selectAnotherDisk();
+        await selectDev.selectDevice("/dev/vdb");
+        await selectDev.confirmDevice();
+        await storage.verifySpaceAllocationFailed();
+        await storage.changeDevice();
+        await storage.selectAnotherDisk();
+        await selectDev.selectDevice("/dev/vdc");
+        await selectDev.confirmDevice();
+        await storage.verifySpaceAllocationFailed();
+    });
+    (0, helpers_1.it)("should change device back to install", async function () {
+        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const selectDev = new select_device_to_install_page_1.SelectDeviceToInstallPage(helpers_1.page);
+        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
+        await sidebar.goToStorage();
+        await storage.changeDevice();
+        await storage.selectAnotherDisk();
+        await selectDev.selectDevice("/dev/vda");
+        await selectDev.confirmDevice();
+    });
+}
+
+
+/***/ }),
+
 /***/ "./src/checks/storage_result_destructive_actions_planned.ts":
 /*!******************************************************************!*\
   !*** ./src/checks/storage_result_destructive_actions_planned.ts ***!
@@ -1373,6 +1419,35 @@ exports.SetARootPasswordPage = SetARootPasswordPage;
 
 /***/ }),
 
+/***/ "./src/pages/select_device_to_install_page.ts":
+/*!****************************************************!*\
+  !*** ./src/pages/select_device_to_install_page.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SelectDeviceToInstallPage = void 0;
+class SelectDeviceToInstallPage {
+    page;
+    confirmButton = () => this.page.locator("button::-p-text(Confirm)");
+    deviceRadio = (deviceName) => this.page.locator(`xpath=//tr[contains(., "${deviceName}")]//input[@type="radio"]`);
+    constructor(page) {
+        this.page = page;
+    }
+    async selectDevice(name) {
+        await this.deviceRadio(name).click();
+    }
+    async confirmDevice() {
+        await this.confirmButton().click();
+    }
+}
+exports.SelectDeviceToInstallPage = SelectDeviceToInstallPage;
+
+
+/***/ }),
+
 /***/ "./src/pages/setup_root_user_authentication_page.ts":
 /*!**********************************************************!*\
   !*** ./src/pages/setup_root_user_authentication_page.ts ***!
@@ -1482,6 +1557,8 @@ const assert_1 = __importDefault(__webpack_require__(/*! assert */ "assert"));
 class StoragePage {
     page;
     selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
+    changeButton = () => this.page.locator("::-p-text(Change)");
+    selectDiskToInstallButton = () => this.page.locator("::-p-text(Select a disk to install the system)");
     editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
     encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
@@ -1490,17 +1567,30 @@ class StoragePage {
     addLvmVolumeLink = () => this.page.locator("::-p-text(Add LVM volume group)");
     destructiveActionsList = () => this.page.locator("::-p-text(Check)");
     destructiveActionText = (name) => this.page.locator(`::-p-text(Delete ${name})`);
+    alertFailedCalculateStorageLayout = () => this.page.locator("::-p-text(Failed to calculate a storage layout)");
     constructor(page) {
         this.page = page;
     }
     async selectMoreDevices() {
         await this.selectMoreDevicesButton().click();
     }
+    async changeDevice() {
+        await this.changeButton().click();
+    }
+    async selectAnotherDisk() {
+        await this.selectDiskToInstallButton().click();
+    }
     async addLvmVolumeGroup() {
         await this.addLvmVolumeLink().click();
     }
     async editEncryption() {
         await this.editEncryptionButton().click();
+    }
+    async verifySpaceAllocationFailed() {
+        const elementText = await this.alertFailedCalculateStorageLayout()
+            .map((span) => span.textContent)
+            .wait();
+        await assert_1.default.match(elementText, /Warning alert:Failed to calculate a storage layout/);
     }
     async verifyEncryptionEnabled() {
         await this.encryptionIsEnabledText().wait();
@@ -1675,6 +1765,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
 const first_user_1 = __webpack_require__(/*! ./checks/first_user */ "./src/checks/first_user.ts");
+const storage_change_device_to_install_1 = __webpack_require__(/*! ./checks/storage_change_device_to_install */ "./src/checks/storage_change_device_to_install.ts");
 const decryption_1 = __webpack_require__(/*! ./checks/decryption */ "./src/checks/decryption.ts");
 const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
 const encryption_1 = __webpack_require__(/*! ./checks/encryption */ "./src/checks/encryption.ts");
@@ -1705,7 +1796,8 @@ if (options.productId !== "none")
     else
         (0, product_selection_1.productSelection)(options.productId);
 (0, decryption_1.decryptDevice)(options.decryptPassword);
-(0, storage_result_destructive_actions_planned_1.verifyDecryptDestructiveActions)(options.destructiveActions);
+if (options.destructiveActions)
+    (0, storage_result_destructive_actions_planned_1.verifyDecryptDestructiveActions)(options.destructiveActions);
 if (options.staticHostname)
     (0, hostname_1.setPermanentHostname)(options.staticHostname);
 (0, encryption_1.enableEncryption)(options.password);
@@ -1717,6 +1809,7 @@ if (options.registrationCode)
     });
 (0, encryption_1.verifyEncryptionEnabled)();
 (0, encryption_1.disableEncryption)();
+(0, storage_change_device_to_install_1.changeDeviceToInstall)();
 (0, first_user_1.createFirstUser)(options.password);
 (0, root_authentication_1.editRootUser)(options.rootPassword);
 (0, root_authentication_1.verifyPasswordStrength)();
