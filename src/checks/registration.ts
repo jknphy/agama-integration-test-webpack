@@ -6,6 +6,8 @@ import {
   CustomRegistrationPage,
   ExtensionPhubRegistrationPage,
 } from "../pages/registration_page";
+import { ConnectionToRegistrationServerFailedAlert } from "../pages/connection_to_registration_server_failed_alert";
+
 import assert from "node:assert/strict";
 
 import { TrustRegistrationCertificatePage } from "../pages/trust_registration_certificate_page";
@@ -108,5 +110,52 @@ export function registerPackageHub() {
       await getTextContent(extensionRegistration.extensionRegisteredText()),
       "The extension was registered without any registration code.",
     );
+  });
+}
+
+export function registrationWarningAlert(ha?: string) {
+  const sidebar = new SidebarWithRegistrationPage(page);
+  const customRegistration = new CustomRegistrationPage(page);
+  const serverFailedAlertPage = new ConnectionToRegistrationServerFailedAlert(page);
+  const invalid_regcode = "123XX432";
+  const invalidHARegistrationCode = "12345ABCDX";
+
+  if (ha) {
+    it("should popup registration errror for invalid HA registration code", async function () {
+      const extensionRegistration = new ExtensionHaRegistrationPage(page);
+      await sidebar.goToRegistration();
+      await extensionRegistration.fillCode(invalidHARegistrationCode);
+      await extensionRegistration.register();
+      assert.deepEqual(
+        await getTextContent(extensionRegistration.extensionRegisteredText()),
+        `Connection to registration server failed: No subscription with registration code '${invalidHARegistrationCode}' found`,
+      );
+    });
+    return;
+  }
+
+  it("should popup register warning alert for invalid registration code", async function () {
+    await sidebar.goToRegistration();
+    await customRegistration.fillCode(invalid_regcode);
+    await customRegistration.register();
+    assert.deepEqual(
+      await getTextContent(serverFailedAlertPage.connectionToRegistrationServerFailedText()),
+      "Connection to registration server failed: Unknown Registration Code.",
+    );
+  });
+
+  it("should popup register warning alert for invalid registration server", async function () {
+    const invalidUrls = ["http://scc.example.net", "https://scc.example.net"];
+    await sidebar.goToRegistration();
+    for (const invalidUrl of invalidUrls) {
+      await customRegistration.selectCustomRegistrationServer();
+      await customRegistration.fillServerUrl(invalidUrl);
+      await customRegistration.register();
+
+      assert.match(
+        await getTextContent(serverFailedAlertPage.connectionToRegistrationServerFailedText()),
+        /Connection to registration server failed: dial tcp: lookup .+ on .+: no such host \(network error\)/,
+      );
+    }
   });
 }
