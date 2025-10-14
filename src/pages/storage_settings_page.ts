@@ -5,7 +5,8 @@ export class StoragePage {
   private readonly page: Page;
   private readonly selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
 
-  private readonly editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
+  private readonly encryptionTab = () => this.page.locator("::-p-text(Encryption)");
+  private readonly changeEncryptionButton = () => this.page.locator("span::-p-text(Change)");
   private readonly encryptionIsEnabledText = () =>
     this.page.locator("::-p-text(Encryption is enabled)");
 
@@ -34,8 +35,12 @@ export class StoragePage {
     await this.addLvmVolumeLink().click();
   }
 
-  async editEncryption() {
-    await this.editEncryptionButton().click();
+  async selectEncryption() {
+    await this.encryptionTab().click();
+  }
+
+  async changeEncryption() {
+    await this.changeEncryptionButton().click();
   }
 
   async verifyEncryptionEnabled() {

@@ -1,7 +1,7 @@
 import { it, page } from "../lib/helpers";
 import { EncryptionSettingsPage } from "../pages/encryption_settings_page";
 import { SidebarPage } from "../pages/sidebar_page";
-import { StoragePage } from "../pages/storage_page";
+import { StoragePage } from "../pages/storage_settings_page";
 
 export function enableEncryption(password: string) {
   it("should enable encryption", async function () {
@@ -10,7 +10,8 @@ export function enableEncryption(password: string) {
     const sidebar = new SidebarPage(page);
 
     await sidebar.goToStorage();
-    await storage.editEncryption();
+    await storage.selectEncryption();
+    await storage.changeEncryption();
     await encryptionSettings.checkEncryption();
     await encryptionSettings.fillPassword(password);
     await encryptionSettings.fillPasswordConfirmation(password);
@@ -36,7 +37,8 @@ export function disableEncryption() {
     const sidebar = new SidebarPage(page);
 
     await sidebar.goToStorage();
-    await storage.editEncryption();
+    await storage.selectEncryption();
+    await storage.changeEncryption();
     await encryptionSettings.uncheckEncryption();
     await encryptionSettings.accept();
     await storage.verifyEncryptionDisabled();
