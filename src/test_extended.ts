@@ -2,6 +2,7 @@ import { parse, commaSeparatedList } from "./lib/cmdline";
 import { test_init } from "./lib/helpers";
 
 import { createFirstUser } from "./checks/first_user";
+import { changeDeviceToInstall } from "./checks/storage_change_device_to_install";
 import { decryptDevice } from "./checks/decryption";
 import { editRootUser, verifyPasswordStrength } from "./checks/root_authentication";
 import { enableEncryption, verifyEncryptionEnabled, disableEncryption } from "./checks/encryption";
@@ -41,7 +42,7 @@ if (options.productId !== "none")
   if (options.acceptLicense) productSelectionWithLicense(options.productId);
   else productSelection(options.productId);
 decryptDevice(options.decryptPassword);
-verifyDecryptDestructiveActions(options.destructiveActions);
+if (options.destructiveActions) verifyDecryptDestructiveActions(options.destructiveActions);
 if (options.staticHostname) setPermanentHostname(options.staticHostname);
 enableEncryption(options.password);
 if (options.registrationCode)
@@ -52,6 +53,7 @@ if (options.registrationCode)
   });
 verifyEncryptionEnabled();
 disableEncryption();
+changeDeviceToInstall();
 createFirstUser(options.password);
 editRootUser(options.rootPassword);
 verifyPasswordStrength();
