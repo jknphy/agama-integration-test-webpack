@@ -1,6 +1,6 @@
 import { it, page } from "../lib/helpers";
 import { SidebarPage } from "../pages/sidebar_page";
-import { StoragePage } from "../pages/storage_page";
+import { StoragePage } from "../pages/storage_settings_page";
 import { ZfcpPage } from "../pages/zfcp_page";
 
 export function prepareZfcpStorage() {

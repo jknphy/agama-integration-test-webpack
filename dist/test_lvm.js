@@ -128,10 +128,10 @@ exports.selectMoreDevices = selectMoreDevices;
 const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
 const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
 const configure_lvm_volume_group_page_1 = __webpack_require__(/*! ../pages/configure_lvm_volume_group_page */ "./src/pages/configure_lvm_volume_group_page.ts");
-const storage_page_1 = __webpack_require__(/*! ../pages/storage_page */ "./src/pages/storage_page.ts");
+const storage_settings_page_1 = __webpack_require__(/*! ../pages/storage_settings_page */ "./src/pages/storage_settings_page.ts");
 function selectMoreDevices() {
     (0, helpers_1.it)("should add LVM volume group", async function () {
-        const storage = new storage_page_1.StoragePage(helpers_1.page);
+        const storage = new storage_settings_page_1.StoragePage(helpers_1.page);
         const lvm = new configure_lvm_volume_group_page_1.ConfigureLvmVolumeGroupPage(helpers_1.page);
         const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
         await sidebar.goToStorage();
@@ -744,10 +744,10 @@ exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
 
 /***/ }),
 
-/***/ "./src/pages/storage_page.ts":
-/*!***********************************!*\
-  !*** ./src/pages/storage_page.ts ***!
-  \***********************************/
+/***/ "./src/pages/storage_settings_page.ts":
+/*!********************************************!*\
+  !*** ./src/pages/storage_settings_page.ts ***!
+  \********************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -761,7 +761,8 @@ const assert_1 = __importDefault(__webpack_require__(/*! assert */ "assert"));
 class StoragePage {
     page;
     selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
-    editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
+    encryptionTab = () => this.page.locator("::-p-text(Encryption)");
+    changeEncryptionButton = () => this.page.locator("span::-p-text(Change)");
     encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
     encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
     manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
@@ -778,8 +779,11 @@ class StoragePage {
     async addLvmVolumeGroup() {
         await this.addLvmVolumeLink().click();
     }
-    async editEncryption() {
-        await this.editEncryptionButton().click();
+    async selectEncryption() {
+        await this.encryptionTab().click();
+    }
+    async changeEncryption() {
+        await this.changeEncryptionButton().click();
     }
     async verifyEncryptionEnabled() {
         await this.encryptionIsEnabledText().wait();
