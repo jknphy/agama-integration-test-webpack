@@ -5,7 +5,11 @@ import { createFirstUser } from "./checks/first_user";
 import { decryptDevice } from "./checks/decryption";
 import { editRootUser, verifyPasswordStrength } from "./checks/root_authentication";
 import { enableEncryption, verifyEncryptionEnabled, disableEncryption } from "./checks/encryption";
-import { enterRegistration } from "./checks/registration";
+import {
+  enterRegistration,
+  registrationWarningAlert,
+  registrationHaWarningAlert,
+} from "./checks/registration";
 import { logIn } from "./checks/login";
 import { performInstallation, checkInstallation, finishInstallation } from "./checks/installation";
 import { prepareZfcpStorage } from "./checks/storage_zfcp";
@@ -44,12 +48,14 @@ decryptDevice(options.decryptPassword);
 verifyDecryptDestructiveActions(options.destructiveActions);
 if (options.staticHostname) setPermanentHostname(options.staticHostname);
 enableEncryption(options.password);
+registrationWarningAlert();
 if (options.registrationCode)
   enterRegistration({
     use_custom: options.useCustomRegistrationServer,
     code: options.registrationCode,
     provide_code: options.provideRegistrationCode,
   });
+registrationHaWarningAlert();
 verifyEncryptionEnabled();
 disableEncryption();
 createFirstUser(options.password);
