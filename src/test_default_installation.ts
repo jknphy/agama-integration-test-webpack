@@ -2,15 +2,15 @@ import { parse, commaSeparatedList } from "./lib/cmdline";
 import { test_init } from "./lib/helpers";
 import { Option } from "commander";
 
-import { createFirstUser } from "./checks/first_user";
-import { editRootUser } from "./checks/root_authentication";
+// import { createFirstUser } from "./checks/first_user";
+// import { editRootUser } from "./checks/root_authentication";
 import { ensureProductConfigurationStarted } from "./checks/configuration_started";
-import { enterProductRegistration, enterExtensionRegistrationHA } from "./checks/registration";
+// import { enterProductRegistration, enterExtensionRegistrationHA } from "./checks/registration";
 import { logIn } from "./checks/login";
-import { performInstallation, finishInstallation } from "./checks/installation";
+// import { performInstallation, finishInstallation } from "./checks/installation";
 import { productSelection, productSelectionWithLicense } from "./checks/product_selection";
-import { prepareZfcpStorage } from "./checks/storage_zfcp";
-import { selectPatterns } from "./checks/software_selection";
+// import { prepareZfcpStorage } from "./checks/storage_zfcp";
+// import { selectPatterns } from "./checks/software_selection";
 
 // parse options from the command line
 const options = parse((cmd) =>
@@ -41,18 +41,18 @@ if (options.productId !== "none")
   if (options.acceptLicense) productSelectionWithLicense(options.productId);
   else productSelection(options.productId);
 ensureProductConfigurationStarted();
-if (options.registrationCode)
-  enterProductRegistration({
-    use_custom: options.useCustomRegistrationServer,
-    code: options.registrationCode,
-    provide_code: options.provideRegistrationCode,
-  });
-if (options.registrationCodeHa) enterExtensionRegistrationHA(options.registrationCodeHa);
-if (options.patterns) selectPatterns(options.patterns);
-createFirstUser(options.password);
-editRootUser(options.rootPassword);
-if (options.prepareAdvancedStorage === "zfcp") prepareZfcpStorage();
-if (options.install) {
-  performInstallation();
-  finishInstallation();
-}
+// if (options.registrationCode)
+//   enterProductRegistration({
+//     use_custom: options.useCustomRegistrationServer,
+//     code: options.registrationCode,
+//     provide_code: options.provideRegistrationCode,
+//   });
+// if (options.registrationCodeHa) enterExtensionRegistrationHA(options.registrationCodeHa);
+// if (options.patterns) selectPatterns(options.patterns);
+// createFirstUser(options.password);
+// editRootUser(options.rootPassword);
+// if (options.prepareAdvancedStorage === "zfcp") prepareZfcpStorage();
+// if (options.install) {
+//   performInstallation();
+//   finishInstallation();
+// }

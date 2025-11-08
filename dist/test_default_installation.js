@@ -27,91 +27,6 @@ function ensureProductConfigurationStarted() {
 
 /***/ }),
 
-/***/ "./src/checks/first_user.ts":
-/*!**********************************!*\
-  !*** ./src/checks/first_user.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createFirstUser = createFirstUser;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const create_user_page_1 = __webpack_require__(/*! ../pages/create_user_page */ "./src/pages/create_user_page.ts");
-const users_page_1 = __webpack_require__(/*! ../pages/users_page */ "./src/pages/users_page.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-function createFirstUser(password) {
-    (0, helpers_1.it)("should create first user", async function () {
-        const users = new users_page_1.UsersPage(helpers_1.page);
-        const createFirstUser = new create_user_page_1.CreateFirstUserPage(helpers_1.page);
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        await sidebar.goToUsers();
-        await users.defineAUserNow();
-        await createFirstUser.fillFullName("Bernhard M. Wiedemann");
-        await createFirstUser.fillUserName("bernhard");
-        await createFirstUser.fillPassword(password);
-        await createFirstUser.fillPasswordConfirmation(password);
-        await createFirstUser.accept();
-        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-        await (0, helpers_1.sleep)(2000);
-    });
-}
-
-
-/***/ }),
-
-/***/ "./src/checks/installation.ts":
-/*!************************************!*\
-  !*** ./src/checks/installation.ts ***!
-  \************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.performInstallation = performInstallation;
-exports.checkInstallation = checkInstallation;
-exports.finishInstallation = finishInstallation;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const confirm_installation_page_1 = __webpack_require__(/*! ../pages/confirm_installation_page */ "./src/pages/confirm_installation_page.ts");
-const congratulation_page_1 = __webpack_require__(/*! ../pages/congratulation_page */ "./src/pages/congratulation_page.ts");
-const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-const installation_page_1 = __webpack_require__(/*! ../pages/installation_page */ "./src/pages/installation_page.ts");
-const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
-function performInstallation() {
-    (0, helpers_1.it)("should start installation", async function () {
-        const confirmInstallation = new confirm_installation_page_1.ConfirmInstallationPage(helpers_1.page);
-        const overview = new overview_page_1.OverviewPage(helpers_1.page);
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        await sidebar.goToOverview();
-        await overview.install();
-        await confirmInstallation.continue();
-    });
-}
-function checkInstallation() {
-    (0, helpers_1.it)("should check installation progress", async function () {
-        const installation = new installation_page_1.InstallationPage(helpers_1.page);
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(installation.prepareDisksText()), "Prepare disks");
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(installation.installingSystemText()), "Installing the system, please wait...");
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(installation.installSoftwareText()), "Install software");
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(installation.configureTheSystemText()), "Configure the system");
-    });
-}
-function finishInstallation() {
-    (0, helpers_1.it)("should finish installation", async function () {
-        const congratulation = new congratulation_page_1.CongratulationPage(helpers_1.page);
-        await congratulation.wait(20 * 60 * 1000);
-    }, 21 * 60 * 1000);
-}
-
-
-/***/ }),
-
 /***/ "./src/checks/login.ts":
 /*!*****************************!*\
   !*** ./src/checks/login.ts ***!
@@ -178,248 +93,6 @@ function productSelectionWithLicense(productId) {
     (0, helpers_1.it)(`should allow to select product`, async function () {
         await new product_selection_page_1.ProductSelectionWithRegistrationPage(helpers_1.page).select();
     });
-}
-
-
-/***/ }),
-
-/***/ "./src/checks/registration.ts":
-/*!************************************!*\
-  !*** ./src/checks/registration.ts ***!
-  \************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.enterProductRegistration = enterProductRegistration;
-exports.enterExtensionRegistrationHA = enterExtensionRegistrationHA;
-exports.enterExtensionRegistrationPHub = enterExtensionRegistrationPHub;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const overview_page_1 = __webpack_require__(/*! ../pages/overview_page */ "./src/pages/overview_page.ts");
-const product_registration_page_1 = __webpack_require__(/*! ../pages/product_registration_page */ "./src/pages/product_registration_page.ts");
-const extension_registration_phub_page_1 = __webpack_require__(/*! ../pages/extension_registration_phub_page */ "./src/pages/extension_registration_phub_page.ts");
-const extension_registration_ha_page_1 = __webpack_require__(/*! ../pages/extension_registration_ha_page */ "./src/pages/extension_registration_ha_page.ts");
-const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
-const trust_registration_certificate_page_1 = __webpack_require__(/*! ../pages/trust_registration_certificate_page */ "./src/pages/trust_registration_certificate_page.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-function enterProductRegistration({ use_custom, code, provide_code, url, }) {
-    (0, helpers_1.it)("should allow setting registration", async function () {
-        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
-        const productRegistration = new product_registration_page_1.ProductRegistrationPage(helpers_1.page);
-        await sidebar.goToRegistration();
-        if (use_custom) {
-            if (url) {
-                const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
-                await customRegistration.selectCustomRegistrationServer();
-                await customRegistration.fillServerUrl(url);
-            }
-            if (provide_code) {
-                await productRegistration.selectProvideRegistrationCode();
-                await productRegistration.fillCode(code);
-            }
-        }
-        else {
-            await productRegistration.fillCode(code);
-        }
-        await productRegistration.register();
-    });
-    if (url?.startsWith("https")) {
-        (0, helpers_1.it)("should handle HTTPS certificate trust for custom registration server", async function () {
-            const trustRegistration = new trust_registration_certificate_page_1.TrustRegistrationCertificatePage(helpers_1.page);
-            strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(trustRegistration.titleText()), "Registration certificate");
-            strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(trustRegistration.questionText()), "Trying to import a self signed certificate. Do you want to trust it and register the product?");
-            strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(trustRegistration.issuerText()), "RMT Certificate Authority");
-            strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(trustRegistration.urlText(url)), url);
-            await trustRegistration.trustCertificate();
-        });
-    }
-    (0, helpers_1.it)("should display product has been registered", async function () {
-        await new overview_page_1.OverviewPage(helpers_1.page).waitVisible(60000);
-        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
-        const productRegistration = new product_registration_page_1.ProductRegistrationPage(helpers_1.page);
-        await sidebar.goToRegistration();
-        await productRegistration.verifyCustomRegistration();
-    });
-}
-function enterExtensionRegistrationHA(code) {
-    (0, helpers_1.it)("should allow registering HA extension", async function () {
-        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
-        const extensionRegistrationHA = new extension_registration_ha_page_1.ExtensionRegistrationHAPage(helpers_1.page);
-        await sidebar.goToRegistration();
-        await extensionRegistrationHA.fillCode(code);
-        await extensionRegistrationHA.register();
-        strict_1.default.match(await (0, helpers_1.getTextContent)(extensionRegistrationHA.extensionRegisteredText()), /The extension has been registered/);
-    });
-}
-function enterExtensionRegistrationPHub() {
-    (0, helpers_1.it)("should allow registering Package Hub extension", async function () {
-        const sidebar = new sidebar_page_1.SidebarWithRegistrationPage(helpers_1.page);
-        const extensionRegistrationPHub = new extension_registration_phub_page_1.ExtensionRegistrationPHubPage(helpers_1.page);
-        await sidebar.goToRegistration();
-        await extensionRegistrationPHub.register();
-        strict_1.default.match(await (0, helpers_1.getTextContent)(extensionRegistrationPHub.trustKeyText()), /is unknown. Do you want to trust this key?/);
-        await extensionRegistrationPHub.trustKey();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(extensionRegistrationPHub.registeredText()), "The extension was registered without any registration code.");
-    });
-}
-
-
-/***/ }),
-
-/***/ "./src/checks/root_authentication.ts":
-/*!*******************************************!*\
-  !*** ./src/checks/root_authentication.ts ***!
-  \*******************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.editRootUser = editRootUser;
-exports.verifyPasswordStrength = verifyPasswordStrength;
-exports.verifyPasswordStrengthWithoutTabs = verifyPasswordStrengthWithoutTabs;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const root_authentication_methods_1 = __webpack_require__(/*! ../pages/root_authentication_methods */ "./src/pages/root_authentication_methods.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-const users_page_1 = __webpack_require__(/*! ../pages/users_page */ "./src/pages/users_page.ts");
-const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
-function editRootUser(password) {
-    (0, helpers_1.it)("should edit the root user", async function () {
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        const users = new users_page_1.UsersPage(helpers_1.page);
-        const setARootPassword = new root_authentication_methods_1.SetARootPasswordPage(helpers_1.page);
-        await sidebar.goToUsers();
-        await users.editRootUser();
-        await setARootPassword.usePassword();
-        await setARootPassword.fillPassword(password);
-        await setARootPassword.fillPasswordConfirmation(password);
-        await setARootPassword.accept();
-        // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-        await (0, helpers_1.sleep)(2000);
-    });
-}
-function verifyPasswordStrength() {
-    (0, helpers_1.it)("should verify the strength of typed password", async function () {
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        const users = new users_page_1.UsersPage(helpers_1.page);
-        const setARootPassword = new root_authentication_methods_1.SetARootPasswordPage(helpers_1.page);
-        await sidebar.goToUsers();
-        await users.editRootUser();
-        await setARootPassword.fillPassword("a23b56c");
-        const elementTextPasswordLess8Characters = await (0, helpers_1.getTextContent)(setARootPassword.alertPasswordLess8Characters());
-        strict_1.default.deepEqual(elementTextPasswordLess8Characters, "The password is shorter than 8 characters");
-        await setARootPassword.fillPassword("a23b56ca");
-        const elementTextPasswordIsWeak = await (0, helpers_1.getTextContent)(setARootPassword.alertPasswordIsWeak());
-        strict_1.default.deepEqual(elementTextPasswordIsWeak, "The password is weak");
-        await setARootPassword.fillPassword("a23b5678");
-        const elementTextPasswordFailDictionary = await (0, helpers_1.getTextContent)(setARootPassword.alertPasswordFailDictionaryCheck());
-        strict_1.default.deepEqual(elementTextPasswordFailDictionary, "The password fails the dictionary check - it is too simplistic/systematic");
-    });
-}
-function verifyPasswordStrengthWithoutTabs() {
-    (0, helpers_1.it)("should verify the strength of typed password", async function () {
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        const users = new users_page_1.UsersPage(helpers_1.page);
-        const setARootPassword = new root_authentication_methods_1.SetARootPasswordPage(helpers_1.page);
-        await sidebar.goToUsers();
-        await users.editRootUser();
-        await setARootPassword.fillPassword("a23b56c");
-        const elementTextPasswordLess8Characters = await (0, helpers_1.getTextContent)(setARootPassword.alertPasswordLess8Characters());
-        strict_1.default.deepEqual(elementTextPasswordLess8Characters, "Warning alert:The password is shorter than 8 characters");
-        await setARootPassword.fillPassword("a23b56ca");
-        const elementTextPasswordIsWeak = await (0, helpers_1.getTextContent)(setARootPassword.alertPasswordIsWeak());
-        strict_1.default.deepEqual(elementTextPasswordIsWeak, "Warning alert:The password is weak");
-        await setARootPassword.fillPassword("a23b5678");
-        const elementTextPasswordFailDictionary = await (0, helpers_1.getTextContent)(setARootPassword.alertPasswordFailDictionaryCheck());
-        strict_1.default.deepEqual(elementTextPasswordFailDictionary, "Warning alert:The password fails the dictionary check - it is too simplistic/systematic");
-    });
-}
-
-
-/***/ }),
-
-/***/ "./src/checks/software_selection.ts":
-/*!******************************************!*\
-  !*** ./src/checks/software_selection.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.selectPatterns = selectPatterns;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-const software_page_1 = __webpack_require__(/*! ../pages/software_page */ "./src/pages/software_page.ts");
-const software_selection_page_1 = __webpack_require__(/*! ../pages/software_selection_page */ "./src/pages/software_selection_page.ts");
-function selectPatterns(patterns) {
-    (0, helpers_1.it)(`should select patterns ${patterns.join(", ")}`, async function () {
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        const software = new software_page_1.SoftwarePage(helpers_1.page);
-        const softwareSelection = new software_selection_page_1.SoftwareSelectionPage(helpers_1.page);
-        await sidebar.goToSoftware();
-        await software.changeSelection();
-        for (const pattern of patterns)
-            await softwareSelection.selectPattern(pattern);
-        await softwareSelection.close();
-    });
-}
-
-
-/***/ }),
-
-/***/ "./src/checks/storage_zfcp.ts":
-/*!************************************!*\
-  !*** ./src/checks/storage_zfcp.ts ***!
-  \************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareZfcpStorage = prepareZfcpStorage;
-exports.prepareZfcpStorageWithoutTabs = prepareZfcpStorageWithoutTabs;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const sidebar_page_1 = __webpack_require__(/*! ../pages/sidebar_page */ "./src/pages/sidebar_page.ts");
-const storage_settings_page_1 = __webpack_require__(/*! ../pages/storage_settings_page */ "./src/pages/storage_settings_page.ts");
-const storage_without_tabs_page_1 = __webpack_require__(/*! ../pages/storage_without_tabs_page */ "./src/pages/storage_without_tabs_page.ts");
-const zfcp_page_1 = __webpack_require__(/*! ../pages/zfcp_page */ "./src/pages/zfcp_page.ts");
-function prepareZfcpStorage() {
-    (0, helpers_1.it)("should prepare zFCP storage", async function () {
-        const storage = new storage_settings_page_1.StorageSettingsPage(helpers_1.page);
-        const zfcp = new zfcp_page_1.ZfcpPage(helpers_1.page);
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        await sidebar.goToStorage();
-        await storage.activateZfcp();
-        await zfcp.activateDevice("0.0.fa00");
-        await zfcp.activateDevice("0.0.fc00");
-        await zfcp.back();
-        await zfcp.activateMultipath();
-        // Workaround to wait for page to load, sometimes workers take more than 60 seconds to load storage
-        await storage.waitForElement("::-p-text(Activate zFCP disks)", 80000);
-    }, 3 * 60 * 1000);
-}
-function prepareZfcpStorageWithoutTabs() {
-    (0, helpers_1.it)("should prepare zFCP storage", async function () {
-        const storage = new storage_without_tabs_page_1.StorageWithoutTabsPage(helpers_1.page);
-        const zfcp = new zfcp_page_1.ZfcpPage(helpers_1.page);
-        const sidebar = new sidebar_page_1.SidebarPage(helpers_1.page);
-        await sidebar.goToStorage();
-        await storage.activateZfcp();
-        await zfcp.activateDevice("0.0.fa00");
-        await zfcp.activateDevice("0.0.fc00");
-        await zfcp.back();
-        await zfcp.activateMultipath();
-        // Workaround to wait for page to load, sometimes workers take more than 60 seconds to load storage
-        await storage.waitForElement("::-p-text(Activate zFCP disks)", 80000);
-    }, 3 * 60 * 1000);
 }
 
 
@@ -506,7 +179,9 @@ function parse(callback) {
         .addOption(new commander_1.Option("-d, --delay <miliseconds>", "Delay between the browser actions, useful in headed mode")
         .argParser(getInt)
         .default(0))
-        .option("-c, --continue", "Continue the test after a failure (the default is abort on error)", false);
+        .option("-c, --continue", "Continue the test after a failure (the default is abort on error)", false)
+        .option("--screenshot-report", "Enable screenshot reporter", false)
+        .option("--dump-report", "Enable dump reporter", false);
     if (callback)
         callback(prg);
     prg.parse(process.argv);
@@ -514,6 +189,303 @@ function parse(callback) {
     // parse options from the command line
     return commander_1.program.opts();
 }
+
+
+/***/ }),
+
+/***/ "./src/lib/dump_reporter.ts":
+/*!**********************************!*\
+  !*** ./src/lib/dump_reporter.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DumpReporter = void 0;
+const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
+const path = __importStar(__webpack_require__(/*! path */ "path"));
+const filmstripScript = `
+  document.addEventListener('DOMContentLoaded', () => {
+    const filmstripNav = document.getElementById('filmstrip-nav');
+    const iframes = document.querySelectorAll('iframe');
+    const iframeContainers = Array.from(iframes).map(iframe => iframe.parentElement);
+
+    if (!filmstripNav || iframes.length === 0) return;
+
+    // 1. Setup placeholders and assign IDs
+    iframes.forEach((iframe, index) => {
+      const iframeId = \`iframe-\${index}\`;
+      iframe.id = iframeId;
+      const container = iframe.parentElement;
+      container.id = \`container-\${iframeId}\`;
+      container.classList.add('iframe-container'); // Add class for scroll margin
+
+      const placeholder = document.createElement('div');
+      placeholder.className = 'filmstrip-item';
+      placeholder.dataset.targetId = iframeId;
+      
+      const placeholderText = document.createElement('span');
+      placeholderText.className = 'filmstrip-placeholder-text';
+      placeholderText.textContent = \`Frame \${index + 1}\`;
+      placeholder.appendChild(placeholderText);
+
+      filmstripNav.appendChild(placeholder);
+    });
+
+    // 2. Lazy generation of thumbnails with retries
+    const lazyObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const placeholder = entry.target;
+          const iframeId = placeholder.dataset.targetId;
+          const iframe = document.getElementById(iframeId);
+          
+          const captureWithRetries = (maxRetries = 10, attempt = 1) => {
+            const internalDoc = iframe.contentDocument;
+            // Condition: Check if the root element inside the iframe has children
+            if (internalDoc && internalDoc.getElementById('root')?.childElementCount > 0) {
+              html2canvas(internalDoc.body, {
+                width: internalDoc.body.scrollWidth,
+                height: internalDoc.body.scrollHeight,
+                useCORS: true,
+                scale: 0.5
+              }).then(canvas => {
+                const img = new Image();
+                img.src = canvas.toDataURL('image/jpeg', 0.8);
+                img.onload = () => {
+                  placeholder.innerHTML = ''; // Clear placeholder text
+                  placeholder.appendChild(img);
+                  observer.unobserve(placeholder); // Unobserve only on success
+                };
+              }).catch(err => {
+                console.error(\`html2canvas error on attempt \${attempt} for \${iframeId}:\`, err);
+                if (attempt < maxRetries) {
+                  setTimeout(() => captureWithRetries(maxRetries, attempt + 1), 2000);
+                } else {
+                  const errorText = placeholder.querySelector('.filmstrip-placeholder-text');
+                  if(errorText) errorText.textContent = 'Capture Failed';
+                }
+              });
+            } else if (attempt < maxRetries) {
+              // If content not ready, wait and retry
+              setTimeout(() => captureWithRetries(maxRetries, attempt + 1), 2000);
+            } else {
+              console.error(\`Capture failed for \${iframeId}: Content not ready after \${maxRetries} attempts.\`);
+              const errorText = placeholder.querySelector('.filmstrip-placeholder-text');
+              if(errorText) errorText.textContent = 'Capture Failed';
+            }
+          };
+
+          // If iframe is already loaded (e.g. from cache), start capture. Otherwise, wait for load event.
+          if (iframe.contentDocument.readyState === 'complete') {
+            captureWithRetries();
+          } else {
+            iframe.addEventListener('load', () => captureWithRetries(), { once: true });
+          }
+        }
+      });
+    }, { root: filmstripNav, rootMargin: '0px 0px 500px 0px', threshold: 1.0 });
+
+    document.querySelectorAll('.filmstrip-item').forEach(item => {
+      lazyObserver.observe(item);
+    });
+
+    // 3. Click-to-scroll functionality
+    filmstripNav.addEventListener('click', (e) => {
+      const item = e.target.closest('.filmstrip-item');
+      if (item && item.dataset.targetId) {
+        const containerId = \`container-\${item.dataset.targetId}\`;
+        const targetContainer = document.getElementById(containerId);
+        if (targetContainer) {
+          targetContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+
+    // 4. Active state highlighting
+    const activeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const iframeId = entry.target.querySelector('iframe')?.id;
+        if (!iframeId) return;
+
+        const filmstripItem = filmstripNav.querySelector(\`.filmstrip-item[data-target-id="\${iframeId}"]\`);
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.filmstrip-item.active').forEach(active => active.classList.remove('active'));
+          filmstripItem.classList.add('active');
+          filmstripItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      });
+    }, { threshold: 0.5, rootMargin: "0px 0px -120px 0px" }); 
+
+    iframeContainers.forEach(container => {
+      activeObserver.observe(container);
+    });
+  });
+`;
+class DumpReporter {
+    page;
+    testName;
+    dumpDir;
+    dumps = [];
+    reportPath;
+    cssContent = "";
+    running = false;
+    loop = null;
+    constructor(page, testName, dumpDir = "dumps") {
+        this.page = page;
+        this.testName = testName;
+        this.dumpDir = dumpDir;
+        this.reportPath = path.join(this.dumpDir, `${this.testName}.html`);
+    }
+    start(dumpPage, dumpCSS, interval = 500) {
+        this.dumps = [];
+        fs.mkdirSync(this.dumpDir, { recursive: true });
+        this.running = true;
+        this.loop = (async () => {
+            this.cssContent = await dumpCSS();
+            while (this.running) {
+                const label = `${this.testName}_${Date.now()}`;
+                const { html, screenshot } = await dumpPage(label);
+                this.dumps.push({
+                    html,
+                    screenshot,
+                });
+                await new Promise((resolve) => setTimeout(resolve, interval));
+            }
+        })();
+    }
+    stop() {
+        this.running = false;
+    }
+    async wait() {
+        if (this.loop) {
+            await this.loop;
+        }
+    }
+    generateReport() {
+        const body = this.dumps
+            .map((dump) => {
+            const styledHtml = dump.html
+                .replace(/<link rel="stylesheet" href="index.css">/, "")
+                .replace(/<script type="module" src=".\/index.js"><\/script>/, "")
+                .replace("</head>", `<style>${this.cssContent}</style></head>`);
+            return `
+      <div style="width: 100%; height: 600px; overflow: hidden; border: 1px solid black; margin-bottom: 10px;">
+        <iframe srcdoc="${styledHtml.replace(/"/g, "&quot;")}" width="100%" height="100%" style="border: none;"></iframe>
+      </div>
+    `;
+        })
+            .join("");
+        const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test Report: ${this.testName}</title>
+        </head>
+        <style>
+          body {
+            padding-left: 180px; /* Provide space for the fixed filmstrip */
+          }
+          #filmstrip-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 180px;
+            height: 100%;
+            background-color: #222;
+            padding: 5px 10px;
+            white-space: normal;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+          }
+          .filmstrip-item {
+            display: block;
+            width: 160px; /* Fixed width for placeholders */
+            height: 90px; /* 16:9 aspect ratio */
+            margin: 10px 0;
+            cursor: pointer;
+            border: 2px solid #555;
+            border-radius: 4px;
+            transition: border-color 0.3s, transform 0.3s;
+            background-color: #333;
+            overflow: hidden;
+            position: relative;
+          }
+          .filmstrip-item:hover {
+            border-color: #007bff;
+            transform: scale(1.05);
+          }
+          .filmstrip-item.active {
+            border-color: #28a745;
+            box-shadow: 0 0 10px #28a745;
+          }
+          .filmstrip-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .filmstrip-placeholder-text {
+            color: #888;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: sans-serif;
+            font-size: 12px;
+          }
+          .iframe-container {
+            scroll-margin-left: 180px; /* Match body padding-left to prevent overlap */
+          }
+        </style>
+        <body>
+          <div id="filmstrip-nav"></div>
+          <h1>Test Report: ${this.testName}</h1>
+          ${body}
+          <script src="../node_modules/html2canvas/dist/html2canvas.min.js"></script>
+          <script>${filmstripScript}</script>
+        </body>
+      </html>
+    `;
+        fs.writeFileSync(this.reportPath, html);
+        console.log(`Report generated at ${this.reportPath}`);
+    }
+}
+exports.DumpReporter = DumpReporter;
 
 
 /***/ }),
@@ -564,8 +536,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.page = void 0;
-exports.test_init = test_init;
 exports.setContinueOnError = setContinueOnError;
+exports.dumpCSS = dumpCSS;
+exports.dumpPage = dumpPage;
+exports.test_init = test_init;
 exports.it = it;
 exports.sleep = sleep;
 exports.getTextContent = getTextContent;
@@ -579,6 +553,8 @@ const wait_on_1 = __importDefault(__webpack_require__(/*! wait-on */ "./node_mod
 const puppeteer = __importStar(__webpack_require__(/*! puppeteer-core */ "./node_modules/puppeteer-core/lib/cjs/puppeteer/puppeteer-core.js"));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const node_test_1 = __webpack_require__(/*! node:test */ "node:test");
+const screenshot_reporter_1 = __webpack_require__(/*! ./screenshot_reporter */ "./src/lib/screenshot_reporter.ts");
+const dump_reporter_1 = __webpack_require__(/*! ./dump_reporter */ "./src/lib/dump_reporter.ts");
 let browser;
 let url;
 // directory for storing the dumped data after a failure
@@ -634,14 +610,6 @@ async function finishBrowser() {
     if (browser)
         await browser.close();
 }
-function test_init(options) {
-    (0, node_test_1.before)(async function () {
-        ({ page: exports.page } = await startBrowser(!options.headed, options.delay, options.browser, options.url));
-    });
-    (0, node_test_1.after)(async function () {
-        await finishBrowser();
-    });
-}
 let failed = false;
 let continueOnError = false;
 function setContinueOnError(enabled) {
@@ -665,7 +633,6 @@ async function dumpCSS() {
             res.on("end", () => {
                 // merge all chunks
                 const data = Buffer.concat(cssData);
-                const cssFile = dir + "/index.css";
                 if (res.headers["content-encoding"] === "gzip") {
                     zlib_1.default.gunzip(data, (err, unpacked) => {
                         if (err) {
@@ -673,14 +640,12 @@ async function dumpCSS() {
                             reject(err.cause);
                         }
                         else {
-                            fs_1.default.writeFileSync(cssFile, unpacked);
-                            resolve(cssFile);
+                            resolve(unpacked.toString());
                         }
                     });
                 }
                 else {
-                    fs_1.default.writeFileSync(cssFile, data);
-                    resolve(cssFile);
+                    resolve(data.toString());
                 }
             });
         })
@@ -694,9 +659,36 @@ async function dumpCSS() {
 async function dumpPage(label) {
     // base file name for the dumps
     const name = path_1.default.join(dir, label.replace(/[^a-zA-Z0-9]/g, "_"));
-    await exports.page.screenshot({ path: name + ".png" });
+    const screenshot = await exports.page.screenshot({ path: name + ".png", encoding: "base64" });
     const html = await exports.page.content();
     fs_1.default.writeFileSync(name + ".html", html);
+    return { html, screenshot: screenshot };
+}
+function test_init(options) {
+    let reporter;
+    (0, node_test_1.before)(async function () {
+        ({ page: exports.page } = await startBrowser(!options.headed, options.delay, options.browser, options.url));
+        if (options.screenshotReport) {
+            const testPath = process.argv[1];
+            const testName = path_1.default.basename(testPath, ".ts");
+            reporter = new screenshot_reporter_1.ScreenshotReporter(exports.page, testName);
+            reporter.start();
+        }
+        else if (options.dumpReport) {
+            const testPath = process.argv[1];
+            const testName = path_1.default.basename(testPath, ".ts");
+            reporter = new dump_reporter_1.DumpReporter(exports.page, testName);
+            reporter.start(dumpPage, dumpCSS);
+        }
+    });
+    (0, node_test_1.after)(async function () {
+        if (reporter) {
+            reporter.stop();
+            await reporter.wait();
+            reporter.generateReport();
+        }
+        await finishBrowser();
+    });
 }
 // define it() as a wrapper which dumps the page on a failure
 async function it(label, test, timeout) {
@@ -750,6 +742,139 @@ async function waitOnFile(filePath) {
 
 /***/ }),
 
+/***/ "./src/lib/screenshot_reporter.ts":
+/*!****************************************!*\
+  !*** ./src/lib/screenshot_reporter.ts ***!
+  \****************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ScreenshotReporter = void 0;
+const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
+const path = __importStar(__webpack_require__(/*! path */ "path"));
+class ScreenshotReporter {
+    page;
+    testName;
+    screenshotDir;
+    screenshots = [];
+    reportPath;
+    running = false;
+    loop = null;
+    constructor(page, testName, screenshotDir = "screenshots") {
+        this.page = page;
+        this.testName = testName;
+        this.screenshotDir = screenshotDir;
+        this.reportPath = path.join(this.screenshotDir, `${this.testName}.html`);
+    }
+    start(interval = 500) {
+        this.screenshots = [];
+        fs.mkdirSync(this.screenshotDir, { recursive: true });
+        this.running = true;
+        this.loop = (async () => {
+            while (this.running) {
+                const screenshotPath = path.join(this.screenshotDir, `${this.testName}_${Date.now()}.png`);
+                await this.page.screenshot({ path: screenshotPath });
+                this.screenshots.push(screenshotPath);
+                await new Promise((resolve) => setTimeout(resolve, interval));
+            }
+        })();
+    }
+    stop() {
+        this.running = false;
+    }
+    async wait() {
+        if (this.loop) {
+            await this.loop;
+        }
+    }
+    generateReport() {
+        const css = `
+      body { font-family: sans-serif; }
+      h1 { text-align: center; }
+      .film-strip {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px;
+      }
+      .screenshot {
+        border: 1px solid #ccc;
+        padding: 5px;
+        text-align: center;
+      }
+      .screenshot img {
+        max-width: 100%;
+        height: auto;
+      }
+    `;
+        const body = this.screenshots
+            .map((screenshot) => `
+      <div class="screenshot">
+        <img src="${path.basename(screenshot)}" alt="${screenshot}" />
+        <p>${path.basename(screenshot)}</p>
+      </div>
+    `)
+            .join("");
+        const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test Report: ${this.testName}</title>
+          <style>${css}</style>
+        </head>
+        <body>
+          <h1>Test Report: ${this.testName}</h1>
+          <div class="film-strip">
+            ${body}
+          </div>
+        </body>
+      </html>
+    `;
+        fs.writeFileSync(this.reportPath, html);
+        console.log(`Report generated at ${this.reportPath}`);
+    }
+}
+exports.ScreenshotReporter = ScreenshotReporter;
+
+
+/***/ }),
+
 /***/ "./src/pages/configuring_product_page.ts":
 /*!***********************************************!*\
   !*** ./src/pages/configuring_product_page.ts ***!
@@ -771,183 +896,6 @@ class ConfiguringProductPage {
     }
 }
 exports.ConfiguringProductPage = ConfiguringProductPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/confirm_installation_page.ts":
-/*!************************************************!*\
-  !*** ./src/pages/confirm_installation_page.ts ***!
-  \************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ConfirmInstallationPage = void 0;
-class ConfirmInstallationPage {
-    page;
-    continueButton = () => this.page.locator("button::-p-text('Continue')");
-    constructor(page) {
-        this.page = page;
-    }
-    async continue() {
-        await this.continueButton().click();
-    }
-}
-exports.ConfirmInstallationPage = ConfirmInstallationPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/congratulation_page.ts":
-/*!******************************************!*\
-  !*** ./src/pages/congratulation_page.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CongratulationPage = void 0;
-class CongratulationPage {
-    page;
-    congratulationText = () => this.page.locator("::-p-text('Congratulations!')");
-    constructor(page) {
-        this.page = page;
-    }
-    async wait(timeout) {
-        await this.congratulationText().setTimeout(timeout).wait();
-    }
-}
-exports.CongratulationPage = CongratulationPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/create_user_page.ts":
-/*!***************************************!*\
-  !*** ./src/pages/create_user_page.ts ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CreateFirstUserPage = void 0;
-class CreateFirstUserPage {
-    page;
-    fullNameInput = () => this.page.locator("input#userFullName");
-    usernameInput = () => this.page.locator("input#userName");
-    passwordInput = () => this.page.locator("input#password");
-    passwordConfirmationInput = () => this.page.locator("input#passwordConfirmation");
-    acceptButton = () => this.page.locator("button[form='firstUserForm']");
-    constructor(page) {
-        this.page = page;
-    }
-    async fillFullName(fullName) {
-        await this.fullNameInput().fill(fullName);
-    }
-    async fillUserName(userName) {
-        await this.usernameInput().fill(userName);
-    }
-    async fillPassword(password) {
-        await this.passwordInput().fill(password);
-    }
-    async fillPasswordConfirmation(password) {
-        await this.passwordConfirmationInput().fill(password);
-    }
-    async accept() {
-        await this.acceptButton().click();
-    }
-}
-exports.CreateFirstUserPage = CreateFirstUserPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/extension_registration_ha_page.ts":
-/*!*****************************************************!*\
-  !*** ./src/pages/extension_registration_ha_page.ts ***!
-  \*****************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ExtensionRegistrationHAPage = void 0;
-class ExtensionRegistrationHAPage {
-    page;
-    codeInput = () => this.page.locator("::-p-aria(Registration code)[type='password']");
-    registerButton = () => this.page.locator("[id*='register-button-sle-ha']");
-    extensionRegisteredText = () => this.page.locator("::-p-text(The extension has been registered)");
-    constructor(page) {
-        this.page = page;
-    }
-    async fillCode(code) {
-        await this.codeInput().fill(code);
-    }
-    async register() {
-        await this.registerButton().click();
-    }
-}
-exports.ExtensionRegistrationHAPage = ExtensionRegistrationHAPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/extension_registration_phub_page.ts":
-/*!*******************************************************!*\
-  !*** ./src/pages/extension_registration_phub_page.ts ***!
-  \*******************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ExtensionRegistrationPHubPage = void 0;
-class ExtensionRegistrationPHubPage {
-    page;
-    registerButton = () => this.page.locator("[id*='register-button-PackageHub']");
-    registeredText = () => this.page.locator("::-p-text(The extension was registered without any registration code)");
-    trustKeyText = () => this.page.locator("::-p-text(Do you want to trust this key?)");
-    trustKeyButton = () => this.page.locator("::-p-text(Trust)");
-    constructor(page) {
-        this.page = page;
-    }
-    async register() {
-        await this.registerButton().click();
-    }
-    async trustKey() {
-        await this.trustKeyButton().click();
-    }
-}
-exports.ExtensionRegistrationPHubPage = ExtensionRegistrationPHubPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/installation_page.ts":
-/*!****************************************!*\
-  !*** ./src/pages/installation_page.ts ***!
-  \****************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.InstallationPage = void 0;
-class InstallationPage {
-    page;
-    prepareDisksText = () => this.page.locator("::-p-text(Prepare disks)");
-    installingSystemText = () => this.page.locator(`::-p-text(Installing the system, please wait...)`);
-    installSoftwareText = () => this.page.locator(`::-p-text(Install software)`);
-    configureTheSystemText = () => this.page.locator(`::-p-text(Configure the system)`);
-    constructor(page) {
-        this.page = page;
-    }
-}
-exports.InstallationPage = InstallationPage;
 
 
 /***/ }),
@@ -1006,75 +954,6 @@ class OverviewPage {
     }
 }
 exports.OverviewPage = OverviewPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/product_registration_page.ts":
-/*!************************************************!*\
-  !*** ./src/pages/product_registration_page.ts ***!
-  \************************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CustomRegistrationPage = exports.ProductRegistrationPage = void 0;
-const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
-class RegistrationBasePage {
-    page;
-    codeInput = () => this.page.locator("::-p-aria(Registration code)[type='password']");
-    infoHasBeenRegisteredText = () => this.page.locator("::-p-text(has been registered with below information)");
-    registerButton = () => this.page.locator("::-p-aria(Register)");
-    registrationOptionCheckbox = () => this.page.locator("::-p-aria(Provide registration code)");
-    constructor(page) {
-        this.page = page;
-    }
-    async selectProvideRegistrationCode() {
-        await this.registrationOptionCheckbox().click();
-    }
-    async fillCode(code) {
-        await this.codeInput().fill(code);
-    }
-    async register() {
-        await this.registerButton().click();
-    }
-    async verifyCustomRegistration() {
-        const elementText = await this.infoHasBeenRegisteredText()
-            .map((span) => span.textContent)
-            .wait();
-        await strict_1.default.match(elementText, /SUSE Linux Enterprise Server.*has been registered with below information/);
-    }
-}
-function CustomRegistrable(Base) {
-    return class extends Base {
-        registrationServerButton = () => this.page.locator("::-p-aria(Registration server)");
-        registrationServerCustomOption = () => this.page.locator("::-p-aria(Custom Register using a custom registration server)");
-        serverUrlTextbox = () => this.page.locator("::-p-aria(Server URL)[type='text']");
-        provideRegistrationCodeCheckbox = () => this.page.locator("::-p-aria(Provide registration code)");
-        async provideRegistrationCode() {
-            await this.provideRegistrationCodeCheckbox().click();
-        }
-        async selectCustomRegistrationServer() {
-            await this.registrationServerButton().click();
-            await this.registrationServerCustomOption().wait();
-            await this.registrationServerCustomOption().click();
-        }
-        async fillServerUrl(url) {
-            await this.serverUrlTextbox().wait();
-            await this.serverUrlTextbox().fill(url);
-        }
-    };
-}
-class ProductRegistrationPage extends RegistrationBasePage {
-}
-exports.ProductRegistrationPage = ProductRegistrationPage;
-class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {
-}
-exports.CustomRegistrationPage = CustomRegistrationPage;
 
 
 /***/ }),
@@ -1140,382 +1019,6 @@ exports.ProductSelectionWithRegistrationPage = ProductSelectionWithRegistrationP
 
 /***/ }),
 
-/***/ "./src/pages/root_authentication_methods.ts":
-/*!**************************************************!*\
-  !*** ./src/pages/root_authentication_methods.ts ***!
-  \**************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SetARootPasswordPage = void 0;
-class SetARootPasswordPage {
-    page;
-    acceptText = () => this.page.locator("button::-p-text(Accept)");
-    confirmText = () => this.page.locator("button::-p-text(Confirm)");
-    passwordInput = () => this.page.locator("input#password");
-    passwordConfirmationInput = () => this.page.locator("input#passwordConfirmation");
-    alertPasswordLess8Characters = () => this.page.locator("::-p-text(The password is shorter than 8 characters)");
-    alertPasswordIsWeak = () => this.page.locator("::-p-text(The password is weak)");
-    alertPasswordFailDictionaryCheck = () => this.page.locator("::-p-text(it is too simplistic/systematic)");
-    usePasswordToggle = () => this.page.locator("::-p-text(Use password)");
-    constructor(page) {
-        this.page = page;
-    }
-    async accept() {
-        await this.acceptText().click();
-    }
-    async confirm() {
-        await this.confirmText().click();
-    }
-    async fillPassword(password) {
-        await this.passwordInput().fill(password);
-    }
-    async fillPasswordConfirmation(password) {
-        await this.passwordConfirmationInput().fill(password);
-    }
-    async usePassword() {
-        await this.usePasswordToggle().click();
-    }
-}
-exports.SetARootPasswordPage = SetARootPasswordPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/sidebar_page.ts":
-/*!***********************************!*\
-  !*** ./src/pages/sidebar_page.ts ***!
-  \***********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SidebarWithRegistrationPage = exports.SidebarPage = void 0;
-class SidebarPage {
-    page;
-    overviewLink = () => this.page.locator("a[href='#/overview']");
-    hostnameLink = () => this.page.locator("a[href='#/hostname']");
-    localizationLink = () => this.page.locator("a[href='#/l10n']");
-    networkLink = () => this.page.locator("a[href='#/network']");
-    storageLink = () => this.page.locator("a[href='#/storage']");
-    softwareLink = () => this.page.locator("a[href='#/software']");
-    usersLink = () => this.page.locator("a[href='#/users']");
-    constructor(page) {
-        this.page = page;
-    }
-    async goToOverview() {
-        await this.overviewLink().click();
-    }
-    async goToHostname() {
-        await this.hostnameLink().click();
-    }
-    async goToLocalization() {
-        await this.localizationLink().click();
-    }
-    async goToNetwork() {
-        await this.networkLink().click();
-    }
-    async goToStorage() {
-        await this.storageLink().click();
-    }
-    async goToSoftware() {
-        await this.softwareLink().click();
-    }
-    async goToUsers() {
-        await this.usersLink().click();
-    }
-}
-exports.SidebarPage = SidebarPage;
-function RegistrationNavigable(Base) {
-    return class extends Base {
-        registrationLink = () => this.page.locator("a[href='#/registration']");
-        async goToRegistration() {
-            await this.registrationLink().click();
-        }
-    };
-}
-class SidebarWithRegistrationPage extends RegistrationNavigable(SidebarPage) {
-}
-exports.SidebarWithRegistrationPage = SidebarWithRegistrationPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/software_page.ts":
-/*!************************************!*\
-  !*** ./src/pages/software_page.ts ***!
-  \************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SoftwarePage = void 0;
-class SoftwarePage {
-    page;
-    changeSelectionButton = () => this.page.locator("::-p-text(Change selection)");
-    constructor(page) {
-        this.page = page;
-    }
-    async changeSelection() {
-        await this.changeSelectionButton().click();
-    }
-}
-exports.SoftwarePage = SoftwarePage;
-
-
-/***/ }),
-
-/***/ "./src/pages/software_selection_page.ts":
-/*!**********************************************!*\
-  !*** ./src/pages/software_selection_page.ts ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SoftwareSelectionPage = void 0;
-class SoftwareSelectionPage {
-    page;
-    patternCheckboxNotChecked = (pattern) => this.page.locator(`input[type=checkbox]:not(:checked)[aria-labelledby*=${pattern}-title]`);
-    patternCheckboxChecked = (pattern) => this.page.locator(`input[type=checkbox]:checked[aria-labelledby*=${pattern}-title]`);
-    closeButton = () => this.page.locator("::-p-text(Close)");
-    constructor(page) {
-        this.page = page;
-    }
-    async selectPattern(pattern) {
-        const checkbox = await this.patternCheckboxNotChecked(pattern).waitHandle();
-        await checkbox.scrollIntoView();
-        await this.patternCheckboxNotChecked(pattern).click();
-        await this.patternCheckboxChecked(pattern).wait();
-    }
-    async close() {
-        await this.closeButton().click();
-    }
-}
-exports.SoftwareSelectionPage = SoftwareSelectionPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/storage_settings_page.ts":
-/*!********************************************!*\
-  !*** ./src/pages/storage_settings_page.ts ***!
-  \********************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.StorageSettingsPage = void 0;
-class StorageSettingsPage {
-    page;
-    selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
-    encryptionTab = () => this.page.locator("::-p-text(Encryption)");
-    changeEncryptionLink = () => this.page.locator('::-p-aria([name="Change"][role="link"])');
-    encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
-    encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
-    manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
-    ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
-    constructor(page) {
-        this.page = page;
-    }
-    async selectMoreDevices() {
-        await this.selectMoreDevicesButton().click();
-    }
-    async selectEncryption() {
-        await this.encryptionTab().click();
-    }
-    async changeEncryption() {
-        await this.changeEncryptionLink().click();
-    }
-    async manageDasd() {
-        await this.manageDasdLink().click();
-    }
-    async activateZfcp() {
-        await this.ActivateZfcpLink().click();
-    }
-    async waitForElement(element, timeout) {
-        await this.page.locator(element).setTimeout(timeout).wait();
-    }
-}
-exports.StorageSettingsPage = StorageSettingsPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/storage_without_tabs_page.ts":
-/*!************************************************!*\
-  !*** ./src/pages/storage_without_tabs_page.ts ***!
-  \************************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.StorageWithoutTabsPage = void 0;
-const assert_1 = __importDefault(__webpack_require__(/*! assert */ "assert"));
-class StorageWithoutTabsPage {
-    page;
-    selectMoreDevicesButton = () => this.page.locator("::-p-text(More devices)");
-    editEncryptionButton = () => this.page.locator("::-p-text(Edit)");
-    encryptionIsEnabledText = () => this.page.locator("::-p-text(Encryption is enabled)");
-    encryptionIsDisabledText = () => this.page.locator("::-p-text(Encryption is disabled)");
-    manageDasdLink = () => this.page.locator("::-p-text(Manage DASD devices)");
-    ActivateZfcpLink = () => this.page.locator("::-p-text(Activate zFCP disks)");
-    addLvmVolumeLink = () => this.page.locator("::-p-text(Add LVM volume group)");
-    destructiveActionsList = () => this.page.locator("::-p-text(Check)");
-    destructiveActionText = (name) => this.page.locator(`::-p-text(Delete ${name})`);
-    constructor(page) {
-        this.page = page;
-    }
-    async selectMoreDevices() {
-        await this.selectMoreDevicesButton().click();
-    }
-    async addLvmVolumeGroup() {
-        await this.addLvmVolumeLink().click();
-    }
-    async editEncryption() {
-        await this.editEncryptionButton().click();
-    }
-    async verifyEncryptionEnabled() {
-        await this.encryptionIsEnabledText().wait();
-    }
-    async verifyEncryptionDisabled() {
-        const elementText = await this.encryptionIsDisabledText()
-            .map((span) => span.textContent)
-            .wait();
-        await assert_1.default.deepEqual(elementText, "Encryption is disabled");
-    }
-    async manageDasd() {
-        await this.manageDasdLink().click();
-    }
-    async activateZfcp() {
-        await this.ActivateZfcpLink().click();
-    }
-    async waitForElement(element, timeout) {
-        await this.page.locator(element).setTimeout(timeout).wait();
-    }
-    async expandDestructiveActionsList() {
-        await this.destructiveActionsList().click();
-    }
-    async verifyDestructiveAction(action) {
-        await this.destructiveActionText(action).wait();
-    }
-}
-exports.StorageWithoutTabsPage = StorageWithoutTabsPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/trust_registration_certificate_page.ts":
-/*!**********************************************************!*\
-  !*** ./src/pages/trust_registration_certificate_page.ts ***!
-  \**********************************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TrustRegistrationCertificatePage = void 0;
-class TrustRegistrationCertificatePage {
-    page;
-    titleText = () => this.page.locator("::-p-text(Registration certificate)");
-    questionText = () => this.page.locator("::-p-text(Do you want to trust it and register the product?)");
-    urlText = (expectedUrl) => this.page.locator(`xpath=//text()[contains(., "${expectedUrl}")]/..`);
-    issuerText = () => this.page.locator("::-p-text(RMT Certificate Authority)");
-    trustCertificateButton = () => this.page.locator("::-p-text(Trust)");
-    constructor(page) {
-        this.page = page;
-    }
-    async trustCertificate() {
-        await this.trustCertificateButton().click();
-    }
-}
-exports.TrustRegistrationCertificatePage = TrustRegistrationCertificatePage;
-
-
-/***/ }),
-
-/***/ "./src/pages/users_page.ts":
-/*!*********************************!*\
-  !*** ./src/pages/users_page.ts ***!
-  \*********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UsersPage = void 0;
-class UsersPage {
-    page;
-    firstUserLink = () => this.page.locator("a[href='#/users/first']");
-    editRootUserButton = () => this.page.locator("a[href='#/users/root/edit']");
-    defineTheFirstUserButton = () => this.page.locator("a[href='#/users/first/edit']");
-    constructor(page) {
-        this.page = page;
-    }
-    async defineAUserNow() {
-        await this.firstUserLink().click();
-    }
-    async editRootUser() {
-        await this.editRootUserButton().click();
-    }
-    async defineTheFirstUser() {
-        await this.defineTheFirstUserButton().click();
-    }
-}
-exports.UsersPage = UsersPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/zfcp_page.ts":
-/*!********************************!*\
-  !*** ./src/pages/zfcp_page.ts ***!
-  \********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ZfcpPage = void 0;
-class ZfcpPage {
-    page;
-    faDisk = () => this.page.locator("tbody > tr:first-child > td:last-child > button#zfcp_controllers_actions");
-    fcDisk = () => this.page.locator("tbody > tr:last-child > td:last-child > button#zfcp_controllers_actions");
-    zfcpDisk = (channelId) => this.page.locator(`xpath=//tr[contains(., "${channelId}")]`);
-    activateDisk = () => this.page.locator("::-p-aria(Activate[role='menuitem'])");
-    backButton = () => this.page.locator("button::-p-text(Back)");
-    enableMultipath = () => this.page.locator("::-p-text('Yes')");
-    constructor(page) {
-        this.page = page;
-    }
-    async activateDevice(channelId) {
-        const rowActions = channelId === "0.0.fa00" ? this.faDisk() : this.fcDisk();
-        await rowActions.click();
-        await this.activateDisk().click();
-        await this.zfcpDisk(channelId).setTimeout(90000).wait();
-    }
-    async activateMultipath() {
-        await this.enableMultipath().setTimeout(40000).click();
-    }
-    async back() {
-        await this.backButton().click();
-    }
-}
-exports.ZfcpPage = ZfcpPage;
-
-
-/***/ }),
-
 /***/ "./src/test_default_installation.ts":
 /*!******************************************!*\
   !*** ./src/test_default_installation.ts ***!
@@ -1528,15 +1031,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const cmdline_1 = __webpack_require__(/*! ./lib/cmdline */ "./src/lib/cmdline.ts");
 const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts");
 const commander_1 = __webpack_require__(/*! commander */ "./node_modules/commander/index.js");
-const first_user_1 = __webpack_require__(/*! ./checks/first_user */ "./src/checks/first_user.ts");
-const root_authentication_1 = __webpack_require__(/*! ./checks/root_authentication */ "./src/checks/root_authentication.ts");
+// import { createFirstUser } from "./checks/first_user";
+// import { editRootUser } from "./checks/root_authentication";
 const configuration_started_1 = __webpack_require__(/*! ./checks/configuration_started */ "./src/checks/configuration_started.ts");
-const registration_1 = __webpack_require__(/*! ./checks/registration */ "./src/checks/registration.ts");
+// import { enterProductRegistration, enterExtensionRegistrationHA } from "./checks/registration";
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
-const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
+// import { performInstallation, finishInstallation } from "./checks/installation";
 const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
-const storage_zfcp_1 = __webpack_require__(/*! ./checks/storage_zfcp */ "./src/checks/storage_zfcp.ts");
-const software_selection_1 = __webpack_require__(/*! ./checks/software_selection */ "./src/checks/software_selection.ts");
+// import { prepareZfcpStorage } from "./checks/storage_zfcp";
+// import { selectPatterns } from "./checks/software_selection";
 // parse options from the command line
 const options = (0, cmdline_1.parse)((cmd) => cmd
     .option("--product-id <id>", "Product id to select a product to install", "none")
@@ -1556,24 +1059,21 @@ if (options.productId !== "none")
     else
         (0, product_selection_1.productSelection)(options.productId);
 (0, configuration_started_1.ensureProductConfigurationStarted)();
-if (options.registrationCode)
-    (0, registration_1.enterProductRegistration)({
-        use_custom: options.useCustomRegistrationServer,
-        code: options.registrationCode,
-        provide_code: options.provideRegistrationCode,
-    });
-if (options.registrationCodeHa)
-    (0, registration_1.enterExtensionRegistrationHA)(options.registrationCodeHa);
-if (options.patterns)
-    (0, software_selection_1.selectPatterns)(options.patterns);
-(0, first_user_1.createFirstUser)(options.password);
-(0, root_authentication_1.editRootUser)(options.rootPassword);
-if (options.prepareAdvancedStorage === "zfcp")
-    (0, storage_zfcp_1.prepareZfcpStorage)();
-if (options.install) {
-    (0, installation_1.performInstallation)();
-    (0, installation_1.finishInstallation)();
-}
+// if (options.registrationCode)
+//   enterProductRegistration({
+//     use_custom: options.useCustomRegistrationServer,
+//     code: options.registrationCode,
+//     provide_code: options.provideRegistrationCode,
+//   });
+// if (options.registrationCodeHa) enterExtensionRegistrationHA(options.registrationCodeHa);
+// if (options.patterns) selectPatterns(options.patterns);
+// createFirstUser(options.password);
+// editRootUser(options.rootPassword);
+// if (options.prepareAdvancedStorage === "zfcp") prepareZfcpStorage();
+// if (options.install) {
+//   performInstallation();
+//   finishInstallation();
+// }
 
 
 /***/ }),

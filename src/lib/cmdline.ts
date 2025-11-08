@@ -53,7 +53,9 @@ export function parse(callback?: (cmd: commander.Command) => void) {
       "-c, --continue",
       "Continue the test after a failure (the default is abort on error)",
       false
-    );
+    )
+    .option("--screenshot-report", "Enable screenshot reporter", false)
+    .option("--dump-report", "Enable dump reporter", false);
 
   if (callback) callback(prg);
 

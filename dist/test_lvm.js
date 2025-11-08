@@ -225,7 +225,9 @@ function parse(callback) {
         .addOption(new commander_1.Option("-d, --delay <miliseconds>", "Delay between the browser actions, useful in headed mode")
         .argParser(getInt)
         .default(0))
-        .option("-c, --continue", "Continue the test after a failure (the default is abort on error)", false);
+        .option("-c, --continue", "Continue the test after a failure (the default is abort on error)", false)
+        .option("--screenshot-report", "Enable screenshot reporter", false)
+        .option("--dump-report", "Enable dump reporter", false);
     if (callback)
         callback(prg);
     prg.parse(process.argv);
@@ -233,6 +235,303 @@ function parse(callback) {
     // parse options from the command line
     return commander_1.program.opts();
 }
+
+
+/***/ }),
+
+/***/ "./src/lib/dump_reporter.ts":
+/*!**********************************!*\
+  !*** ./src/lib/dump_reporter.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DumpReporter = void 0;
+const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
+const path = __importStar(__webpack_require__(/*! path */ "path"));
+const filmstripScript = `
+  document.addEventListener('DOMContentLoaded', () => {
+    const filmstripNav = document.getElementById('filmstrip-nav');
+    const iframes = document.querySelectorAll('iframe');
+    const iframeContainers = Array.from(iframes).map(iframe => iframe.parentElement);
+
+    if (!filmstripNav || iframes.length === 0) return;
+
+    // 1. Setup placeholders and assign IDs
+    iframes.forEach((iframe, index) => {
+      const iframeId = \`iframe-\${index}\`;
+      iframe.id = iframeId;
+      const container = iframe.parentElement;
+      container.id = \`container-\${iframeId}\`;
+      container.classList.add('iframe-container'); // Add class for scroll margin
+
+      const placeholder = document.createElement('div');
+      placeholder.className = 'filmstrip-item';
+      placeholder.dataset.targetId = iframeId;
+      
+      const placeholderText = document.createElement('span');
+      placeholderText.className = 'filmstrip-placeholder-text';
+      placeholderText.textContent = \`Frame \${index + 1}\`;
+      placeholder.appendChild(placeholderText);
+
+      filmstripNav.appendChild(placeholder);
+    });
+
+    // 2. Lazy generation of thumbnails with retries
+    const lazyObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const placeholder = entry.target;
+          const iframeId = placeholder.dataset.targetId;
+          const iframe = document.getElementById(iframeId);
+          
+          const captureWithRetries = (maxRetries = 10, attempt = 1) => {
+            const internalDoc = iframe.contentDocument;
+            // Condition: Check if the root element inside the iframe has children
+            if (internalDoc && internalDoc.getElementById('root')?.childElementCount > 0) {
+              html2canvas(internalDoc.body, {
+                width: internalDoc.body.scrollWidth,
+                height: internalDoc.body.scrollHeight,
+                useCORS: true,
+                scale: 0.5
+              }).then(canvas => {
+                const img = new Image();
+                img.src = canvas.toDataURL('image/jpeg', 0.8);
+                img.onload = () => {
+                  placeholder.innerHTML = ''; // Clear placeholder text
+                  placeholder.appendChild(img);
+                  observer.unobserve(placeholder); // Unobserve only on success
+                };
+              }).catch(err => {
+                console.error(\`html2canvas error on attempt \${attempt} for \${iframeId}:\`, err);
+                if (attempt < maxRetries) {
+                  setTimeout(() => captureWithRetries(maxRetries, attempt + 1), 2000);
+                } else {
+                  const errorText = placeholder.querySelector('.filmstrip-placeholder-text');
+                  if(errorText) errorText.textContent = 'Capture Failed';
+                }
+              });
+            } else if (attempt < maxRetries) {
+              // If content not ready, wait and retry
+              setTimeout(() => captureWithRetries(maxRetries, attempt + 1), 2000);
+            } else {
+              console.error(\`Capture failed for \${iframeId}: Content not ready after \${maxRetries} attempts.\`);
+              const errorText = placeholder.querySelector('.filmstrip-placeholder-text');
+              if(errorText) errorText.textContent = 'Capture Failed';
+            }
+          };
+
+          // If iframe is already loaded (e.g. from cache), start capture. Otherwise, wait for load event.
+          if (iframe.contentDocument.readyState === 'complete') {
+            captureWithRetries();
+          } else {
+            iframe.addEventListener('load', () => captureWithRetries(), { once: true });
+          }
+        }
+      });
+    }, { root: filmstripNav, rootMargin: '0px 0px 500px 0px', threshold: 1.0 });
+
+    document.querySelectorAll('.filmstrip-item').forEach(item => {
+      lazyObserver.observe(item);
+    });
+
+    // 3. Click-to-scroll functionality
+    filmstripNav.addEventListener('click', (e) => {
+      const item = e.target.closest('.filmstrip-item');
+      if (item && item.dataset.targetId) {
+        const containerId = \`container-\${item.dataset.targetId}\`;
+        const targetContainer = document.getElementById(containerId);
+        if (targetContainer) {
+          targetContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+
+    // 4. Active state highlighting
+    const activeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const iframeId = entry.target.querySelector('iframe')?.id;
+        if (!iframeId) return;
+
+        const filmstripItem = filmstripNav.querySelector(\`.filmstrip-item[data-target-id="\${iframeId}"]\`);
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.filmstrip-item.active').forEach(active => active.classList.remove('active'));
+          filmstripItem.classList.add('active');
+          filmstripItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      });
+    }, { threshold: 0.5, rootMargin: "0px 0px -120px 0px" }); 
+
+    iframeContainers.forEach(container => {
+      activeObserver.observe(container);
+    });
+  });
+`;
+class DumpReporter {
+    page;
+    testName;
+    dumpDir;
+    dumps = [];
+    reportPath;
+    cssContent = "";
+    running = false;
+    loop = null;
+    constructor(page, testName, dumpDir = "dumps") {
+        this.page = page;
+        this.testName = testName;
+        this.dumpDir = dumpDir;
+        this.reportPath = path.join(this.dumpDir, `${this.testName}.html`);
+    }
+    start(dumpPage, dumpCSS, interval = 500) {
+        this.dumps = [];
+        fs.mkdirSync(this.dumpDir, { recursive: true });
+        this.running = true;
+        this.loop = (async () => {
+            this.cssContent = await dumpCSS();
+            while (this.running) {
+                const label = `${this.testName}_${Date.now()}`;
+                const { html, screenshot } = await dumpPage(label);
+                this.dumps.push({
+                    html,
+                    screenshot,
+                });
+                await new Promise((resolve) => setTimeout(resolve, interval));
+            }
+        })();
+    }
+    stop() {
+        this.running = false;
+    }
+    async wait() {
+        if (this.loop) {
+            await this.loop;
+        }
+    }
+    generateReport() {
+        const body = this.dumps
+            .map((dump) => {
+            const styledHtml = dump.html
+                .replace(/<link rel="stylesheet" href="index.css">/, "")
+                .replace(/<script type="module" src=".\/index.js"><\/script>/, "")
+                .replace("</head>", `<style>${this.cssContent}</style></head>`);
+            return `
+      <div style="width: 100%; height: 600px; overflow: hidden; border: 1px solid black; margin-bottom: 10px;">
+        <iframe srcdoc="${styledHtml.replace(/"/g, "&quot;")}" width="100%" height="100%" style="border: none;"></iframe>
+      </div>
+    `;
+        })
+            .join("");
+        const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test Report: ${this.testName}</title>
+        </head>
+        <style>
+          body {
+            padding-left: 180px; /* Provide space for the fixed filmstrip */
+          }
+          #filmstrip-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 180px;
+            height: 100%;
+            background-color: #222;
+            padding: 5px 10px;
+            white-space: normal;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+          }
+          .filmstrip-item {
+            display: block;
+            width: 160px; /* Fixed width for placeholders */
+            height: 90px; /* 16:9 aspect ratio */
+            margin: 10px 0;
+            cursor: pointer;
+            border: 2px solid #555;
+            border-radius: 4px;
+            transition: border-color 0.3s, transform 0.3s;
+            background-color: #333;
+            overflow: hidden;
+            position: relative;
+          }
+          .filmstrip-item:hover {
+            border-color: #007bff;
+            transform: scale(1.05);
+          }
+          .filmstrip-item.active {
+            border-color: #28a745;
+            box-shadow: 0 0 10px #28a745;
+          }
+          .filmstrip-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .filmstrip-placeholder-text {
+            color: #888;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: sans-serif;
+            font-size: 12px;
+          }
+          .iframe-container {
+            scroll-margin-left: 180px; /* Match body padding-left to prevent overlap */
+          }
+        </style>
+        <body>
+          <div id="filmstrip-nav"></div>
+          <h1>Test Report: ${this.testName}</h1>
+          ${body}
+          <script src="../node_modules/html2canvas/dist/html2canvas.min.js"></script>
+          <script>${filmstripScript}</script>
+        </body>
+      </html>
+    `;
+        fs.writeFileSync(this.reportPath, html);
+        console.log(`Report generated at ${this.reportPath}`);
+    }
+}
+exports.DumpReporter = DumpReporter;
 
 
 /***/ }),
@@ -283,8 +582,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.page = void 0;
-exports.test_init = test_init;
 exports.setContinueOnError = setContinueOnError;
+exports.dumpCSS = dumpCSS;
+exports.dumpPage = dumpPage;
+exports.test_init = test_init;
 exports.it = it;
 exports.sleep = sleep;
 exports.getTextContent = getTextContent;
@@ -298,6 +599,8 @@ const wait_on_1 = __importDefault(__webpack_require__(/*! wait-on */ "./node_mod
 const puppeteer = __importStar(__webpack_require__(/*! puppeteer-core */ "./node_modules/puppeteer-core/lib/cjs/puppeteer/puppeteer-core.js"));
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 const node_test_1 = __webpack_require__(/*! node:test */ "node:test");
+const screenshot_reporter_1 = __webpack_require__(/*! ./screenshot_reporter */ "./src/lib/screenshot_reporter.ts");
+const dump_reporter_1 = __webpack_require__(/*! ./dump_reporter */ "./src/lib/dump_reporter.ts");
 let browser;
 let url;
 // directory for storing the dumped data after a failure
@@ -353,14 +656,6 @@ async function finishBrowser() {
     if (browser)
         await browser.close();
 }
-function test_init(options) {
-    (0, node_test_1.before)(async function () {
-        ({ page: exports.page } = await startBrowser(!options.headed, options.delay, options.browser, options.url));
-    });
-    (0, node_test_1.after)(async function () {
-        await finishBrowser();
-    });
-}
 let failed = false;
 let continueOnError = false;
 function setContinueOnError(enabled) {
@@ -384,7 +679,6 @@ async function dumpCSS() {
             res.on("end", () => {
                 // merge all chunks
                 const data = Buffer.concat(cssData);
-                const cssFile = dir + "/index.css";
                 if (res.headers["content-encoding"] === "gzip") {
                     zlib_1.default.gunzip(data, (err, unpacked) => {
                         if (err) {
@@ -392,14 +686,12 @@ async function dumpCSS() {
                             reject(err.cause);
                         }
                         else {
-                            fs_1.default.writeFileSync(cssFile, unpacked);
-                            resolve(cssFile);
+                            resolve(unpacked.toString());
                         }
                     });
                 }
                 else {
-                    fs_1.default.writeFileSync(cssFile, data);
-                    resolve(cssFile);
+                    resolve(data.toString());
                 }
             });
         })
@@ -413,9 +705,36 @@ async function dumpCSS() {
 async function dumpPage(label) {
     // base file name for the dumps
     const name = path_1.default.join(dir, label.replace(/[^a-zA-Z0-9]/g, "_"));
-    await exports.page.screenshot({ path: name + ".png" });
+    const screenshot = await exports.page.screenshot({ path: name + ".png", encoding: "base64" });
     const html = await exports.page.content();
     fs_1.default.writeFileSync(name + ".html", html);
+    return { html, screenshot: screenshot };
+}
+function test_init(options) {
+    let reporter;
+    (0, node_test_1.before)(async function () {
+        ({ page: exports.page } = await startBrowser(!options.headed, options.delay, options.browser, options.url));
+        if (options.screenshotReport) {
+            const testPath = process.argv[1];
+            const testName = path_1.default.basename(testPath, ".ts");
+            reporter = new screenshot_reporter_1.ScreenshotReporter(exports.page, testName);
+            reporter.start();
+        }
+        else if (options.dumpReport) {
+            const testPath = process.argv[1];
+            const testName = path_1.default.basename(testPath, ".ts");
+            reporter = new dump_reporter_1.DumpReporter(exports.page, testName);
+            reporter.start(dumpPage, dumpCSS);
+        }
+    });
+    (0, node_test_1.after)(async function () {
+        if (reporter) {
+            reporter.stop();
+            await reporter.wait();
+            reporter.generateReport();
+        }
+        await finishBrowser();
+    });
 }
 // define it() as a wrapper which dumps the page on a failure
 async function it(label, test, timeout) {
@@ -465,6 +784,139 @@ async function waitOnFile(filePath) {
     }
 }
 ;
+
+
+/***/ }),
+
+/***/ "./src/lib/screenshot_reporter.ts":
+/*!****************************************!*\
+  !*** ./src/lib/screenshot_reporter.ts ***!
+  \****************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ScreenshotReporter = void 0;
+const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
+const path = __importStar(__webpack_require__(/*! path */ "path"));
+class ScreenshotReporter {
+    page;
+    testName;
+    screenshotDir;
+    screenshots = [];
+    reportPath;
+    running = false;
+    loop = null;
+    constructor(page, testName, screenshotDir = "screenshots") {
+        this.page = page;
+        this.testName = testName;
+        this.screenshotDir = screenshotDir;
+        this.reportPath = path.join(this.screenshotDir, `${this.testName}.html`);
+    }
+    start(interval = 500) {
+        this.screenshots = [];
+        fs.mkdirSync(this.screenshotDir, { recursive: true });
+        this.running = true;
+        this.loop = (async () => {
+            while (this.running) {
+                const screenshotPath = path.join(this.screenshotDir, `${this.testName}_${Date.now()}.png`);
+                await this.page.screenshot({ path: screenshotPath });
+                this.screenshots.push(screenshotPath);
+                await new Promise((resolve) => setTimeout(resolve, interval));
+            }
+        })();
+    }
+    stop() {
+        this.running = false;
+    }
+    async wait() {
+        if (this.loop) {
+            await this.loop;
+        }
+    }
+    generateReport() {
+        const css = `
+      body { font-family: sans-serif; }
+      h1 { text-align: center; }
+      .film-strip {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px;
+      }
+      .screenshot {
+        border: 1px solid #ccc;
+        padding: 5px;
+        text-align: center;
+      }
+      .screenshot img {
+        max-width: 100%;
+        height: auto;
+      }
+    `;
+        const body = this.screenshots
+            .map((screenshot) => `
+      <div class="screenshot">
+        <img src="${path.basename(screenshot)}" alt="${screenshot}" />
+        <p>${path.basename(screenshot)}</p>
+      </div>
+    `)
+            .join("");
+        const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test Report: ${this.testName}</title>
+          <style>${css}</style>
+        </head>
+        <body>
+          <h1>Test Report: ${this.testName}</h1>
+          <div class="film-strip">
+            ${body}
+          </div>
+        </body>
+      </html>
+    `;
+        fs.writeFileSync(this.reportPath, html);
+        console.log(`Report generated at ${this.reportPath}`);
+    }
+}
+exports.ScreenshotReporter = ScreenshotReporter;
 
 
 /***/ }),

@@ -9,6 +9,10 @@ import * as puppeteer from "puppeteer-core";
 // see https://nodejs.org/docs/latest-v20.x/api/test.html
 import { it as testIt, before, after } from "node:test";
 
+import { ScreenshotReporter } from "./screenshot_reporter";
+
+import { DumpReporter } from "./dump_reporter";
+
 export let page: puppeteer.Page;
 let browser: puppeteer.Browser;
 let url: string;
@@ -79,21 +83,6 @@ async function finishBrowser() {
   if (browser) await browser.close();
 }
 
-export function test_init(options) {
-  before(async function () {
-    ({ page } = await startBrowser(
-      !options.headed,
-      options.delay,
-      options.browser,
-      options.url
-    ));
-  });
-
-  after(async function () {
-    await finishBrowser();
-  });
-}
-
 let failed = false;
 
 let continueOnError = false;
@@ -103,7 +92,7 @@ export function setContinueOnError(enabled: boolean) {
 }
 
 // helper function, dump the index.css file so the HTML dump can properly displayed
-async function dumpCSS() {
+export async function dumpCSS(): Promise<string> {
   const cssData = [];
   const downloader = url.startsWith("https://") ? https : http;
   return new Promise((resolve, reject) => {
@@ -123,20 +112,17 @@ async function dumpCSS() {
           res.on("end", () => {
             // merge all chunks
             const data = Buffer.concat(cssData);
-            const cssFile = dir + "/index.css";
             if (res.headers["content-encoding"] === "gzip") {
               zlib.gunzip(data, (err, unpacked) => {
                 if (err) {
                   console.error("Cannot decompress index.css: ", err.cause);
                   reject(err.cause);
                 } else {
-                  fs.writeFileSync(cssFile, unpacked);
-                  resolve(cssFile);
+                  resolve(unpacked.toString());
                 }
               });
             } else {
-              fs.writeFileSync(cssFile, data);
-              resolve(cssFile);
+              resolve(data.toString());
             }
           });
         }
@@ -149,12 +135,46 @@ async function dumpCSS() {
 }
 
 // dump the current page displayed in puppeteer
-async function dumpPage(label: string) {
+export async function dumpPage(label: string): Promise<{ html: string, screenshot: string }> {
   // base file name for the dumps
   const name = path.join(dir, label.replace(/[^a-zA-Z0-9]/g, "_"));
-  await page.screenshot({ path: name + ".png" });
+  const screenshot = await page.screenshot({ path: name + ".png", encoding: "base64" });
   const html = await page.content();
   fs.writeFileSync(name + ".html", html);
+  return { html, screenshot: screenshot as string };
+}
+
+export function test_init(options) {
+  let reporter: ScreenshotReporter | DumpReporter;
+
+  before(async function () {
+    ({ page } = await startBrowser(
+      !options.headed,
+      options.delay,
+      options.browser,
+      options.url
+    ));
+    if (options.screenshotReport) {
+      const testPath = process.argv[1];
+      const testName = path.basename(testPath, ".ts");
+      reporter = new ScreenshotReporter(page, testName);
+      reporter.start();
+    } else if (options.dumpReport) {
+      const testPath = process.argv[1];
+      const testName = path.basename(testPath, ".ts");
+      reporter = new DumpReporter(page, testName);
+      (reporter as DumpReporter).start(dumpPage, dumpCSS);
+    }
+  });
+
+  after(async function () {
+    if (reporter) {
+      reporter.stop();
+      await reporter.wait();
+      reporter.generateReport();
+    }
+    await finishBrowser();
+  });
 }
 
 // define it() as a wrapper which dumps the page on a failure
