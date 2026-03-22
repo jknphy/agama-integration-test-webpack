@@ -18,13 +18,11 @@ class RegistrationBasePage {
   readonly connectionToRegistrationServerFailedText = () =>
     this.page.locator("::-p-text(Connection to registration server failed:)");
 
-  readonly alertWarningUnknownRegistrationCodeText = () =>
-    this.page.locator("::-p-text(Unknown Registration Code.)");
+  public readonly alertWarningUnknownRegistrationCodeSelector = "::-p-text(Unknown Registration Code.)";
 
-  readonly alertWarningEnterARegistrationCodeText = () =>
-    this.page.locator("::-p-text(Enter a registration code)");
+  public readonly alertWarningEnterARegistrationCodeSelector = "::-p-text(Enter a registration code)";
 
-  readonly alertWarningNetworkErrorNoSuchHost = () => this.page.locator("::-p-text(no such host)");
+  public readonly alertWarningNetworkErrorNoSuchHostSelector = "::-p-text(no such host)";
 
   constructor(page: Page) {
     this.page = page;
@@ -92,5 +90,5 @@ function CustomRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Bas
   };
 }
 
-export class ProductRegistrationPage extends RegistrationBasePage {}
-export class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) {}
+export class ProductRegistrationPage extends RegistrationBasePage { }
+export class CustomRegistrationPage extends CustomRegistrable(RegistrationBasePage) { }

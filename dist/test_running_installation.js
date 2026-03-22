@@ -609,13 +609,13 @@ function verifyRegistrationWarniningAlerts(url) {
         await overview.goToRegistration();
         await customRegistration.selectProvideRegistrationCode();
         await customRegistration.register();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(customRegistration.alertWarningEnterARegistrationCodeText()), "Enter a registration code");
+        strict_1.default.deepEqual(await (0, helpers_1.getTextContent2)(customRegistration.alertWarningEnterARegistrationCodeSelector), "Enter a registration code");
     });
     (0, helpers_1.it)("should show warning alert for invalid registration code", async function () {
         const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
         await customRegistration.fillCode("1234invalid4321");
         await customRegistration.register();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(customRegistration.alertWarningUnknownRegistrationCodeText()), "Unknown Registration Code.");
+        strict_1.default.deepEqual(await (0, helpers_1.getTextContent2)(customRegistration.alertWarningUnknownRegistrationCodeSelector), "Unknown Registration Code.");
     });
     (0, helpers_1.it)("should show warning alert for invalid custom registration server", async function () {
         const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
@@ -624,7 +624,7 @@ function verifyRegistrationWarniningAlerts(url) {
         await customRegistration.selectProvideRegistrationCode();
         await customRegistration.fillServerUrl("http://scc.example.net");
         await customRegistration.register();
-        strict_1.default.match(await (0, helpers_1.getTextContent)(customRegistration.alertWarningNetworkErrorNoSuchHost()), /Network error: dial tcp: lookup .+ on .+: no such host/);
+        strict_1.default.match(await (0, helpers_1.getTextContent2)(customRegistration.alertWarningNetworkErrorNoSuchHostSelector), /Network error: dial tcp: lookup .+ on .+: no such host/);
         await customRegistration.fillServerUrl(url);
         await customRegistration.register();
         await header.goToOverview();
@@ -638,7 +638,7 @@ function verifyRegistrationWarniningAlertsWithSidebar(use_custom, url) {
         if (use_custom)
             await customRegistration.selectProvideRegistrationCode();
         await customRegistration.register();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(customRegistration.alertWarningEnterARegistrationCodeText()), "Enter a registration code");
+        strict_1.default.deepEqual(await (0, helpers_1.getTextContent2)(customRegistration.alertWarningEnterARegistrationCodeSelector), "Enter a registration code");
     });
     (0, helpers_1.it)("should show warning alert for invalid registration code", async function () {
         const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
@@ -1295,6 +1295,7 @@ exports.setContinueOnError = setContinueOnError;
 exports.it = it;
 exports.sleep = sleep;
 exports.getTextContent = getTextContent;
+exports.getTextContent2 = getTextContent2;
 exports.getValue = getValue;
 exports.waitOnFile = waitOnFile;
 const fs_1 = __importDefault(__webpack_require__(/*! fs */ "fs"));
@@ -1459,6 +1460,11 @@ function sleep(ms) {
 }
 function getTextContent(locator) {
     return locator.map((element) => element.textContent).wait();
+}
+async function getTextContent2(selector) {
+    return await exports.page.locator(selector)
+        .map((element) => element.textContent)
+        .wait();
 }
 function getValue(locator) {
     return locator.map((element) => element.value).wait();
@@ -2280,9 +2286,9 @@ class RegistrationBasePage {
     registrationOptionCheckbox = () => this.page.locator("::-p-aria(Provide registration code)");
     // legacy alert warning for QU to be dropped
     connectionToRegistrationServerFailedText = () => this.page.locator("::-p-text(Connection to registration server failed:)");
-    alertWarningUnknownRegistrationCodeText = () => this.page.locator("::-p-text(Unknown Registration Code.)");
-    alertWarningEnterARegistrationCodeText = () => this.page.locator("::-p-text(Enter a registration code)");
-    alertWarningNetworkErrorNoSuchHost = () => this.page.locator("::-p-text(no such host)");
+    alertWarningUnknownRegistrationCodeSelector = "::-p-text(Unknown Registration Code.)";
+    alertWarningEnterARegistrationCodeSelector = "::-p-text(Enter a registration code)";
+    alertWarningNetworkErrorNoSuchHostSelector = "::-p-text(no such host)";
     constructor(page) {
         this.page = page;
     }

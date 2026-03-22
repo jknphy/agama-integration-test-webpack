@@ -228,6 +228,7 @@ exports.setContinueOnError = setContinueOnError;
 exports.it = it;
 exports.sleep = sleep;
 exports.getTextContent = getTextContent;
+exports.getTextContent2 = getTextContent2;
 exports.getValue = getValue;
 exports.waitOnFile = waitOnFile;
 const fs_1 = __importDefault(__webpack_require__(/*! fs */ "fs"));
@@ -392,6 +393,11 @@ function sleep(ms) {
 }
 function getTextContent(locator) {
     return locator.map((element) => element.textContent).wait();
+}
+async function getTextContent2(selector) {
+    return await exports.page.locator(selector)
+        .map((element) => element.textContent)
+        .wait();
 }
 function getValue(locator) {
     return locator.map((element) => element.value).wait();

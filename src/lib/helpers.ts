@@ -193,6 +193,12 @@ export function getTextContent(locator): Promise<string> {
   return locator.map((element) => element.textContent).wait();
 }
 
+export async function getTextContent2(selector: string): Promise<string> {
+  return await page.locator(selector)
+    .map((element) => element.textContent)
+    .wait();
+}
+
 export function getValue(locator): Promise<string> {
   return locator.map((element) => element.value).wait();
 }

@@ -1,4 +1,4 @@
-import { it, page, getTextContent } from "../lib/helpers";
+import { it, page, getTextContent, getTextContent2 } from "../lib/helpers";
 import { OverviewWithRegistrationPage } from "../pages/overview_page";
 import {
   ProductRegistrationPage,
@@ -214,7 +214,7 @@ export function verifyRegistrationWarniningAlerts(url: string): void {
     await customRegistration.selectProvideRegistrationCode();
     await customRegistration.register();
     assert.deepEqual(
-      await getTextContent(customRegistration.alertWarningEnterARegistrationCodeText()),
+      await getTextContent2(customRegistration.alertWarningEnterARegistrationCodeSelector),
       "Enter a registration code",
     );
   });
@@ -225,7 +225,7 @@ export function verifyRegistrationWarniningAlerts(url: string): void {
     await customRegistration.fillCode("1234invalid4321");
     await customRegistration.register();
     assert.deepEqual(
-      await getTextContent(customRegistration.alertWarningUnknownRegistrationCodeText()),
+      await getTextContent2(customRegistration.alertWarningUnknownRegistrationCodeSelector),
       "Unknown Registration Code.",
     );
   });
@@ -240,7 +240,7 @@ export function verifyRegistrationWarniningAlerts(url: string): void {
     await customRegistration.register();
 
     assert.match(
-      await getTextContent(customRegistration.alertWarningNetworkErrorNoSuchHost()),
+      await getTextContent2(customRegistration.alertWarningNetworkErrorNoSuchHostSelector),
       /Network error: dial tcp: lookup .+ on .+: no such host/,
     );
 
@@ -262,7 +262,7 @@ export function verifyRegistrationWarniningAlertsWithSidebar(
     if (use_custom) await customRegistration.selectProvideRegistrationCode();
     await customRegistration.register();
     assert.deepEqual(
-      await getTextContent(customRegistration.alertWarningEnterARegistrationCodeText()),
+      await getTextContent2(customRegistration.alertWarningEnterARegistrationCodeSelector),
       "Enter a registration code",
     );
   });
