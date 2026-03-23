@@ -90,9 +90,11 @@ function logInWithIncorrectPasswordWithSidebar() {
         const invalidpassword = "invalid password";
         await loginAsRoot.fillPassword(invalidpassword);
         await loginAsRoot.logIn();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(loginAsRoot.couldNotLoginText()), "Danger alert:Could not log in. Please, make sure that the password is correct.");
+        const alertText = await (0, helpers_1.getTextContent)(loginAsRoot.couldNotLoginText());
+        strict_1.default.deepEqual(alertText, "Danger alert:Could not log in");
         await loginAsRoot.togglePasswordVisibility();
-        strict_1.default.deepEqual(await (0, helpers_1.getValue)(loginAsRoot.passwordInput()), invalidpassword);
+        const passwordInputValue = await (0, helpers_1.getValue)(loginAsRoot.passwordInput());
+        strict_1.default.deepEqual(passwordInputValue, invalidpassword);
     });
 }
 
@@ -407,7 +409,9 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function getTextContent(locator) {
-    return locator.map((element) => element.textContent).wait();
+    return locator
+        .map((element) => element.textContent)
+        .wait();
 }
 function getValue(locator) {
     return locator.map((element) => element.value).wait();

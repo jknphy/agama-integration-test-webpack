@@ -11,6 +11,8 @@ class RegistrationBasePage {
     this.page.locator("::-p-text(has been registered with below information)");
 
   protected readonly registerButton = () => this.page.locator("::-p-aria(Register)");
+  protected readonly doNotRegisterButton = () => this.page.locator("::-p-text(Do not register)");
+
   protected readonly registrationOptionCheckbox = () =>
     this.page.locator("::-p-aria(Provide registration code)");
 
@@ -24,7 +26,7 @@ class RegistrationBasePage {
   readonly alertWarningEnterARegistrationCodeText = () =>
     this.page.locator("::-p-text(Enter a registration code)");
 
-  readonly alertWarningNetworkErrorNoSuchHost = () => this.page.locator("::-p-text(no such host)");
+  readonly alertWarningNetworkErrorText = () => this.page.locator("::-p-text(Network error)");
 
   constructor(page: Page) {
     this.page = page;
@@ -40,6 +42,10 @@ class RegistrationBasePage {
 
   async register() {
     await this.registerButton().click();
+  }
+
+  async doNotRegister() {
+    await this.doNotRegisterButton().click();
   }
 
   async verifyCustomRegistration() {
@@ -86,7 +92,6 @@ function CustomRegistrable<TBase extends GConstructor<RegistrationBasePage>>(Bas
     }
 
     async fillServerUrl(url: string) {
-      await this.serverUrlTextbox().wait();
       await this.serverUrlTextbox().fill(url);
     }
   };

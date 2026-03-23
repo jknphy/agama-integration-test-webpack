@@ -190,7 +190,9 @@ export function sleep(ms: number) {
 }
 
 export function getTextContent(locator): Promise<string> {
-  return locator.map((element) => element.textContent).wait();
+  return locator
+    .map((element) => element.textContent)
+    .wait();
 }
 
 export function getValue(locator): Promise<string> {

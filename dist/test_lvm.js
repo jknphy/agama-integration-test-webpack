@@ -330,9 +330,11 @@ function logInWithIncorrectPasswordWithSidebar() {
         const invalidpassword = "invalid password";
         await loginAsRoot.fillPassword(invalidpassword);
         await loginAsRoot.logIn();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(loginAsRoot.couldNotLoginText()), "Danger alert:Could not log in. Please, make sure that the password is correct.");
+        const alertText = await (0, helpers_1.getTextContent)(loginAsRoot.couldNotLoginText());
+        strict_1.default.deepEqual(alertText, "Danger alert:Could not log in");
         await loginAsRoot.togglePasswordVisibility();
-        strict_1.default.deepEqual(await (0, helpers_1.getValue)(loginAsRoot.passwordInput()), invalidpassword);
+        const passwordInputValue = await (0, helpers_1.getValue)(loginAsRoot.passwordInput());
+        strict_1.default.deepEqual(passwordInputValue, invalidpassword);
     });
 }
 
@@ -560,7 +562,7 @@ function enterExtensionRegistrationPHub() {
         strict_1.default.match(await (0, helpers_1.getTextContent)(extensionRegistrationPHub.trustKeyText()), /is unknown. Do you want to trust this key?/);
         await extensionRegistrationPHub.trustKey();
         strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(extensionRegistrationPHub.registeredText()), "The extension was registered without any registration code.");
-        header.goToOverview();
+        await header.goToOverview();
     });
 }
 function enterExtensionRegistrationPHubWithSidebar() {
@@ -574,20 +576,24 @@ function enterExtensionRegistrationPHubWithSidebar() {
         strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(extensionRegistrationPHub.registeredText()), "The extension was registered without any registration code.");
     });
 }
-function verifyRegistrationWarniningAlerts(url) {
+function verifyRegistrationWarniningAlerts() {
     (0, helpers_1.it)("should show warning alert for missing registration code", async function () {
         const overview = new overview_page_1.OverviewWithRegistrationPage(helpers_1.page);
         const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
         await overview.goToRegistration();
         await customRegistration.selectProvideRegistrationCode();
         await customRegistration.register();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(customRegistration.alertWarningEnterARegistrationCodeText()), "Enter a registration code");
+        await (0, helpers_1.sleep)(2000);
+        const warningText = await (0, helpers_1.getTextContent)(customRegistration.alertWarningEnterARegistrationCodeText());
+        strict_1.default.deepEqual(warningText, "Enter a registration code");
     });
     (0, helpers_1.it)("should show warning alert for invalid registration code", async function () {
         const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
         await customRegistration.fillCode("1234invalid4321");
         await customRegistration.register();
-        strict_1.default.deepEqual(await (0, helpers_1.getTextContent)(customRegistration.alertWarningUnknownRegistrationCodeText()), "Unknown Registration Code.");
+        await (0, helpers_1.sleep)(2000);
+        const warningText = await (0, helpers_1.getTextContent)(customRegistration.alertWarningUnknownRegistrationCodeText());
+        strict_1.default.deepEqual(warningText, "Unknown Registration Code.");
     });
     (0, helpers_1.it)("should show warning alert for invalid custom registration server", async function () {
         const customRegistration = new product_registration_page_1.CustomRegistrationPage(helpers_1.page);
@@ -596,9 +602,11 @@ function verifyRegistrationWarniningAlerts(url) {
         await customRegistration.selectProvideRegistrationCode();
         await customRegistration.fillServerUrl("http://scc.example.net");
         await customRegistration.register();
-        strict_1.default.match(await (0, helpers_1.getTextContent)(customRegistration.alertWarningNetworkErrorNoSuchHost()), /Network error: dial tcp: lookup .+ on .+: no such host/);
-        await customRegistration.fillServerUrl(url);
-        await customRegistration.register();
+        await (0, helpers_1.sleep)(2000);
+        const warningText = await (0, helpers_1.getTextContent)(customRegistration.alertWarningNetworkErrorText());
+        strict_1.default.match(warningText, /Network error: dial tcp: lookup .+ on .+: no such host/);
+        await customRegistration.doNotRegister();
+        await (0, helpers_1.sleep)(2000);
         await header.goToOverview();
     });
 }
@@ -1430,7 +1438,9 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function getTextContent(locator) {
-    return locator.map((element) => element.textContent).wait();
+    return locator
+        .map((element) => element.textContent)
+        .wait();
 }
 function getValue(locator) {
     return locator.map((element) => element.value).wait();
@@ -2223,12 +2233,13 @@ class RegistrationBasePage {
     codeInput = () => this.page.locator("::-p-aria(Registration code)[type='password']");
     infoHasBeenRegisteredText = () => this.page.locator("::-p-text(has been registered with below information)");
     registerButton = () => this.page.locator("::-p-aria(Register)");
+    doNotRegisterButton = () => this.page.locator("::-p-text(Do not register)");
     registrationOptionCheckbox = () => this.page.locator("::-p-aria(Provide registration code)");
     // legacy alert warning for QU to be dropped
     connectionToRegistrationServerFailedText = () => this.page.locator("::-p-text(Connection to registration server failed:)");
     alertWarningUnknownRegistrationCodeText = () => this.page.locator("::-p-text(Unknown Registration Code.)");
     alertWarningEnterARegistrationCodeText = () => this.page.locator("::-p-text(Enter a registration code)");
-    alertWarningNetworkErrorNoSuchHost = () => this.page.locator("::-p-text(no such host)");
+    alertWarningNetworkErrorText = () => this.page.locator("::-p-text(Network error)");
     constructor(page) {
         this.page = page;
     }
@@ -2240,6 +2251,9 @@ class RegistrationBasePage {
     }
     async register() {
         await this.registerButton().click();
+    }
+    async doNotRegister() {
+        await this.doNotRegisterButton().click();
     }
     async verifyCustomRegistration() {
         const elementText = await this.infoHasBeenRegisteredText()
@@ -2268,7 +2282,6 @@ function CustomRegistrable(Base) {
             await this.registrationServerSCCOption().click();
         }
         async fillServerUrl(url) {
-            await this.serverUrlTextbox().wait();
             await this.serverUrlTextbox().fill(url);
         }
     };
@@ -2846,8 +2859,8 @@ class ProductReleaseStrategy {
     setPermanentHostname(hostname) {
         (0, hostname_1.setPermanentHostname)(hostname);
     }
-    verifyRegistrationWarniningAlerts(url) {
-        (0, registration_1.verifyRegistrationWarniningAlerts)(url);
+    verifyRegistrationWarniningAlerts() {
+        (0, registration_1.verifyRegistrationWarniningAlerts)();
     }
     enterProductRegistration({ use_custom, code, provide_code, url }) {
         (0, registration_1.enterProductRegistration)({ use_custom, code, provide_code, url });

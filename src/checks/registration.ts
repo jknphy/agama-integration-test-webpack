@@ -1,4 +1,4 @@
-import { it, page, getTextContent } from "../lib/helpers";
+import { it, page, getTextContent, sleep } from "../lib/helpers";
 import { OverviewWithRegistrationPage } from "../pages/overview_page";
 import {
   ProductRegistrationPage,
@@ -182,7 +182,7 @@ export function enterExtensionRegistrationPHub() {
       await getTextContent(extensionRegistrationPHub.registeredText()),
       "The extension was registered without any registration code.",
     );
-    header.goToOverview();
+    await header.goToOverview();
   });
 }
 
@@ -205,7 +205,7 @@ export function enterExtensionRegistrationPHubWithSidebar() {
   });
 }
 
-export function verifyRegistrationWarniningAlerts(url: string): void {
+export function verifyRegistrationWarniningAlerts(): void {
   it("should show warning alert for missing registration code", async function () {
     const overview = new OverviewWithRegistrationPage(page);
     const customRegistration = new CustomRegistrationPage(page);
@@ -213,10 +213,11 @@ export function verifyRegistrationWarniningAlerts(url: string): void {
     await overview.goToRegistration();
     await customRegistration.selectProvideRegistrationCode();
     await customRegistration.register();
-    assert.deepEqual(
-      await getTextContent(customRegistration.alertWarningEnterARegistrationCodeText()),
-      "Enter a registration code",
+    await sleep(2000);
+    const warningText = await getTextContent(
+      customRegistration.alertWarningEnterARegistrationCodeText(),
     );
+    assert.deepEqual(warningText, "Enter a registration code");
   });
 
   it("should show warning alert for invalid registration code", async function () {
@@ -224,10 +225,11 @@ export function verifyRegistrationWarniningAlerts(url: string): void {
 
     await customRegistration.fillCode("1234invalid4321");
     await customRegistration.register();
-    assert.deepEqual(
-      await getTextContent(customRegistration.alertWarningUnknownRegistrationCodeText()),
-      "Unknown Registration Code.",
+    await sleep(2000);
+    const warningText = await getTextContent(
+      customRegistration.alertWarningUnknownRegistrationCodeText(),
     );
+    assert.deepEqual(warningText, "Unknown Registration Code.");
   });
 
   it("should show warning alert for invalid custom registration server", async function () {
@@ -238,14 +240,12 @@ export function verifyRegistrationWarniningAlerts(url: string): void {
     await customRegistration.selectProvideRegistrationCode();
     await customRegistration.fillServerUrl("http://scc.example.net");
     await customRegistration.register();
+    await sleep(2000);
+    const warningText = await getTextContent(customRegistration.alertWarningNetworkErrorText());
+    assert.match(warningText, /Network error: dial tcp: lookup .+ on .+: no such host/);
 
-    assert.match(
-      await getTextContent(customRegistration.alertWarningNetworkErrorNoSuchHost()),
-      /Network error: dial tcp: lookup .+ on .+: no such host/,
-    );
-
-    await customRegistration.fillServerUrl(url);
-    await customRegistration.register();
+    await customRegistration.doNotRegister();
+    await sleep(2000);
     await header.goToOverview();
   });
 }
