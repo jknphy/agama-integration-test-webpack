@@ -1,4 +1,4 @@
-import { it, page, getTextContent, waitUntilOverlaySettled } from "../lib/helpers";
+import { it, page, getTextContent, waitUntilOverlaySettled, dumpPage } from "../lib/helpers";
 import { OverviewWithRegistrationPage } from "../pages/overview_page";
 import {
   ProductRegistrationPage,
@@ -215,6 +215,8 @@ export function verifyRegistrationWarniningAlerts(): void {
 
     await customRegistration.selectProvideRegistrationCode();
     await customRegistration.register();
+    await waitUntilOverlaySettled();
+
     const warningText = await getTextContent(
       customRegistration.alertWarningEnterARegistrationCodeText(),
     );
@@ -244,6 +246,7 @@ export function verifyRegistrationWarniningAlerts(): void {
     await customRegistration.register();
     await waitUntilOverlaySettled();
 
+    await dumpPage("dump-page.html");
     const warningText = await getTextContent(customRegistration.alertWarningNetworkErrorText());
     assert.match(warningText, /Network error: dial tcp: lookup .+ on .+: no such host/);
 

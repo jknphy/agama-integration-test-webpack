@@ -243,6 +243,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.page = void 0;
 exports.test_init = test_init;
 exports.setContinueOnError = setContinueOnError;
+exports.dumpPage = dumpPage;
 exports.it = it;
 exports.sleep = sleep;
 exports.getTextContent = getTextContent;
@@ -409,17 +410,31 @@ async function it(label, test, timeout) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-function getTextContent(locator) {
-    return locator
-        .map((element) => element.textContent)
-        .wait();
+async function getTextContent(locator) {
+    try {
+        return locator
+            .map((element) => element.textContent)
+            .wait();
+    }
+    catch (error) {
+        const html = await exports.page.content();
+        fs_1.default.writeFileSync('debug-dump.html', html);
+        throw new Error("Test failed!", { cause: error });
+    }
 }
 async function waitUntilOverlaySettled() {
     const selector = '[role="alert"].agm-main-content-overlay';
-    const appeared = await exports.page.waitForSelector(selector, { visible: true, timeout: 500 })
-        .catch(() => null);
+    const start = Date.now();
+    const appeared = await exports.page.waitForSelector(selector, { visible: true, timeout: 1000 })
+        .catch(() => {
+        console.log("[Debug]: Overlay did not appear within 500ms. Moving on...");
+        return null;
+    });
     if (appeared) {
+        console.log("[Debug]: Overlay detected. Waiting for it to disappear...");
         await exports.page.waitForSelector(selector, { hidden: true });
+        const duration = Date.now() - start;
+        console.log(`[Debug]: Overlay cleared after ${duration}ms`);
     }
 }
 function getValue(locator) {

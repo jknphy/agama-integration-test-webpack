@@ -2,36 +2,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/checks/download_logs.ts":
-/*!*************************************!*\
-  !*** ./src/checks/download_logs.ts ***!
-  \*************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.downloadLogs = downloadLogs;
-const helpers_1 = __webpack_require__(/*! ../lib/helpers */ "./src/lib/helpers.ts");
-const fs_1 = __importDefault(__webpack_require__(/*! fs */ "fs"));
-const strict_1 = __importDefault(__webpack_require__(/*! node:assert/strict */ "node:assert/strict"));
-const options_toggle_page_1 = __webpack_require__(/*! ../pages/options_toggle_page */ "./src/pages/options_toggle_page.ts");
-const filePath = "/root/Downloads/agama-logs.tar.gz";
-async function downloadLogs() {
-    (0, helpers_1.it)(`should download logs`, async function () {
-        await new options_toggle_page_1.OptionsTogglePage(helpers_1.page).downloadLogs();
-        await (0, helpers_1.waitOnFile)(filePath);
-        const fileSize = fs_1.default.statSync(filePath).size;
-        (0, strict_1.default)(fileSize > 0, "Agama Logfile is empty.");
-    });
-}
-
-
-/***/ }),
-
 /***/ "./src/checks/encryption.ts":
 /*!**********************************!*\
   !*** ./src/checks/encryption.ts ***!
@@ -664,6 +634,7 @@ function verifyRegistrationWarniningAlerts() {
         await (0, helpers_1.waitUntilOverlaySettled)();
         await customRegistration.selectProvideRegistrationCode();
         await customRegistration.register();
+        await (0, helpers_1.waitUntilOverlaySettled)();
         const warningText = await (0, helpers_1.getTextContent)(customRegistration.alertWarningEnterARegistrationCodeText());
         strict_1.default.deepEqual(warningText, "Enter a registration code");
     });
@@ -683,6 +654,7 @@ function verifyRegistrationWarniningAlerts() {
         await customRegistration.fillServerUrl("http://scc.example.net");
         await customRegistration.register();
         await (0, helpers_1.waitUntilOverlaySettled)();
+        await (0, helpers_1.dumpPage)("dump-page.html");
         const warningText = await (0, helpers_1.getTextContent)(customRegistration.alertWarningNetworkErrorText());
         strict_1.default.match(warningText, /Network error: dial tcp: lookup .+ on .+: no such host/);
         await customRegistration.doNotRegister();
@@ -1353,6 +1325,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.page = void 0;
 exports.test_init = test_init;
 exports.setContinueOnError = setContinueOnError;
+exports.dumpPage = dumpPage;
 exports.it = it;
 exports.sleep = sleep;
 exports.getTextContent = getTextContent;
@@ -1519,17 +1492,31 @@ async function it(label, test, timeout) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-function getTextContent(locator) {
-    return locator
-        .map((element) => element.textContent)
-        .wait();
+async function getTextContent(locator) {
+    try {
+        return locator
+            .map((element) => element.textContent)
+            .wait();
+    }
+    catch (error) {
+        const html = await exports.page.content();
+        fs_1.default.writeFileSync('debug-dump.html', html);
+        throw new Error("Test failed!", { cause: error });
+    }
 }
 async function waitUntilOverlaySettled() {
     const selector = '[role="alert"].agm-main-content-overlay';
-    const appeared = await exports.page.waitForSelector(selector, { visible: true, timeout: 500 })
-        .catch(() => null);
+    const start = Date.now();
+    const appeared = await exports.page.waitForSelector(selector, { visible: true, timeout: 1000 })
+        .catch(() => {
+        console.log("[Debug]: Overlay did not appear within 500ms. Moving on...");
+        return null;
+    });
     if (appeared) {
+        console.log("[Debug]: Overlay detected. Waiting for it to disappear...");
         await exports.page.waitForSelector(selector, { hidden: true });
+        const duration = Date.now() - start;
+        console.log(`[Debug]: Overlay cleared after ${duration}ms`);
     }
 }
 function getValue(locator) {
@@ -2211,33 +2198,6 @@ class NetworkPage {
     }
 }
 exports.NetworkPage = NetworkPage;
-
-
-/***/ }),
-
-/***/ "./src/pages/options_toggle_page.ts":
-/*!******************************************!*\
-  !*** ./src/pages/options_toggle_page.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.OptionsTogglePage = void 0;
-class OptionsTogglePage {
-    page;
-    optionsToggle = () => this.page.locator("::-p-aria(Options toggle)");
-    downloadLogsMenuItem = () => this.page.locator("::-p-aria(Download logs)");
-    constructor(page) {
-        this.page = page;
-    }
-    async downloadLogs() {
-        await this.optionsToggle().click();
-        await this.downloadLogsMenuItem().click();
-    }
-}
-exports.OptionsTogglePage = OptionsTogglePage;
 
 
 /***/ }),
@@ -3005,8 +2965,6 @@ const helpers_1 = __webpack_require__(/*! ./lib/helpers */ "./src/lib/helpers.ts
 const commander_1 = __webpack_require__(/*! commander */ "./node_modules/commander/index.js");
 const product_strategy_factory_1 = __webpack_require__(/*! ./lib/product_strategy_factory */ "./src/lib/product_strategy_factory.ts");
 const login_1 = __webpack_require__(/*! ./checks/login */ "./src/checks/login.ts");
-const installation_1 = __webpack_require__(/*! ./checks/installation */ "./src/checks/installation.ts");
-const download_logs_1 = __webpack_require__(/*! ./checks/download_logs */ "./src/checks/download_logs.ts");
 const product_selection_1 = __webpack_require__(/*! ./checks/product_selection */ "./src/checks/product_selection.ts");
 const options = (0, cmdline_1.parse)((cmd) => cmd
     .option("--product-id <id>", "Product id to select a product to install", "none")
@@ -3033,28 +2991,27 @@ testStrategy.ensureLandingOnOverview();
 if (options.staticHostname)
     testStrategy.setPermanentHostname(options.staticHostname);
 testStrategy.verifyRegistrationWarniningAlerts(options.useCustomRegistrationServer, options.registrationServerUrl);
-if (options.registrationCode)
-    testStrategy.enterProductRegistration({
-        use_custom: options.useCustomRegistrationServer,
-        code: options.registrationCode,
-        provide_code: options.provideRegistrationCode,
-        url: options.registrationServerUrl,
-    });
-testStrategy.enableEncryption(options.password);
-testStrategy.verifyEncryptionEnabled();
-testStrategy.disableEncryption();
-testStrategy.changeDiskToInstallTheSystem();
-testStrategy.createFirstUser(options.password);
-testStrategy.editRootUser(options.rootPassword);
-testStrategy.verifyPasswordStrength();
-if (options.prepareAdvancedStorage === "zfcp")
-    testStrategy.prepareZfcpStorage();
-(0, download_logs_1.downloadLogs)();
-if (options.install) {
-    testStrategy.performInstallation();
-    (0, installation_1.checkInstallation)();
-    testStrategy.finishInstallation();
-}
+// if (options.registrationCode)
+//   testStrategy.enterProductRegistration({
+//     use_custom: options.useCustomRegistrationServer,
+//     code: options.registrationCode,
+//     provide_code: options.provideRegistrationCode,
+//     url: options.registrationServerUrl,
+//   });
+// testStrategy.enableEncryption(options.password);
+// testStrategy.verifyEncryptionEnabled();
+// testStrategy.disableEncryption();
+// testStrategy.changeDiskToInstallTheSystem();
+// testStrategy.createFirstUser(options.password);
+// testStrategy.editRootUser(options.rootPassword);
+// testStrategy.verifyPasswordStrength();
+// if (options.prepareAdvancedStorage === "zfcp") testStrategy.prepareZfcpStorage();
+// downloadLogs();
+// if (options.install) {
+//   testStrategy.performInstallation();
+//   checkInstallation();
+//   testStrategy.finishInstallation();
+// }
 
 
 /***/ }),

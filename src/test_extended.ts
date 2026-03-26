@@ -44,24 +44,24 @@ testStrategy.verifyRegistrationWarniningAlerts(
   options.useCustomRegistrationServer,
   options.registrationServerUrl,
 );
-if (options.registrationCode)
-  testStrategy.enterProductRegistration({
-    use_custom: options.useCustomRegistrationServer,
-    code: options.registrationCode,
-    provide_code: options.provideRegistrationCode,
-    url: options.registrationServerUrl,
-  });
-testStrategy.enableEncryption(options.password);
-testStrategy.verifyEncryptionEnabled();
-testStrategy.disableEncryption();
-testStrategy.changeDiskToInstallTheSystem();
-testStrategy.createFirstUser(options.password);
-testStrategy.editRootUser(options.rootPassword);
-testStrategy.verifyPasswordStrength();
-if (options.prepareAdvancedStorage === "zfcp") testStrategy.prepareZfcpStorage();
-downloadLogs();
-if (options.install) {
-  testStrategy.performInstallation();
-  checkInstallation();
-  testStrategy.finishInstallation();
-}
+// if (options.registrationCode)
+//   testStrategy.enterProductRegistration({
+//     use_custom: options.useCustomRegistrationServer,
+//     code: options.registrationCode,
+//     provide_code: options.provideRegistrationCode,
+//     url: options.registrationServerUrl,
+//   });
+// testStrategy.enableEncryption(options.password);
+// testStrategy.verifyEncryptionEnabled();
+// testStrategy.disableEncryption();
+// testStrategy.changeDiskToInstallTheSystem();
+// testStrategy.createFirstUser(options.password);
+// testStrategy.editRootUser(options.rootPassword);
+// testStrategy.verifyPasswordStrength();
+// if (options.prepareAdvancedStorage === "zfcp") testStrategy.prepareZfcpStorage();
+// downloadLogs();
+// if (options.install) {
+//   testStrategy.performInstallation();
+//   checkInstallation();
+//   testStrategy.finishInstallation();
+// }

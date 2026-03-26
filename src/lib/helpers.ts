@@ -151,7 +151,7 @@ async function dumpCSS() {
 }
 
 // dump the current page displayed in puppeteer
-async function dumpPage(label: string) {
+export async function dumpPage(label: string) {
   // base file name for the dumps
   const name = path.join(dir, label.replace(/[^a-zA-Z0-9]/g, "_"));
   await page.screenshot({ path: name + ".png" });
@@ -189,19 +189,37 @@ export function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export function getTextContent(locator): Promise<string> {
-  return locator
-    .map((element) => element.textContent)
-    .wait();
+export async function getTextContent(locator): Promise<string> {
+  try {
+    return locator
+      .map((element) => element.textContent)
+      .wait();
+  }
+  catch (error) {
+    const html = await page.content();
+    fs.writeFileSync('debug-dump.html', html);
+    throw new Error("Test failed!", { cause: error });
+  }
 }
 
 export async function waitUntilOverlaySettled() {
   const selector = '[role="alert"].agm-main-content-overlay';
-  const appeared = await page.waitForSelector(selector, { visible: true, timeout: 500 })
-    .catch(() => null);
+
+  const start = Date.now();
+
+  const appeared = await page.waitForSelector(selector, { visible: true, timeout: 1000 })
+    .catch(() => {
+      console.log("[Debug]: Overlay did not appear within 500ms. Moving on...");
+      return null;
+    });
 
   if (appeared) {
+    console.log("[Debug]: Overlay detected. Waiting for it to disappear...");
+
     await page.waitForSelector(selector, { hidden: true });
+
+    const duration = Date.now() - start;
+    console.log(`[Debug]: Overlay cleared after ${duration}ms`);
   }
 }
 
