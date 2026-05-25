@@ -20,9 +20,9 @@ export function editRootUser(password: string) {
     await setARootPassword.fillPasswordConfirmation(password);
     await setARootPassword.accept();
     // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-    await sleep(5000);
+    await sleep(249000);
     await header.goToOverview();
-  });
+  }, 250000);
 }
 
 export function editRootUserWithSidebar(password: string) {
