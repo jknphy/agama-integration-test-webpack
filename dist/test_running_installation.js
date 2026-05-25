@@ -781,7 +781,7 @@ function editRootUser(password) {
         await setARootPassword.fillPasswordConfirmation(password);
         await setARootPassword.accept();
         // puppeteer goes too fast and screen is unresponsive after submit, a small delay helps
-        await (0, helpers_1.sleep)(2000);
+        await (0, helpers_1.sleep)(5000);
         await header.goToOverview();
     });
 }

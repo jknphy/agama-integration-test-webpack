@@ -155333,7 +155333,7 @@ const REQUIRE_DIRECTORY_ERROR = 'loading a directory of commands is not supporte
 
 let __dirname;
 try {
-  __dirname = (0,url__WEBPACK_IMPORTED_MODULE_5__.fileURLToPath)("file:///home/jose/Documents/claude/agama-integration-test-webpack/node_modules/yargs/lib/platform-shims/esm.mjs");
+  __dirname = (0,url__WEBPACK_IMPORTED_MODULE_5__.fileURLToPath)("file:///home/jrivera/Code/agama-integration-test-webpack/node_modules/yargs/lib/platform-shims/esm.mjs");
 } catch (e) {
   __dirname = process.cwd();
 }
