@@ -214,6 +214,10 @@ export function getTextContent(locator, timeout: number = 30000): Promise<string
     .wait();
 }
 
+export function readClipboard(): Promise<string> {
+  return page.evaluate(() => navigator.clipboard.readText());
+}
+
 export function getValue(locator): Promise<string> {
   return locator.map((element) => element.value).wait();
 }
@@ -252,6 +256,28 @@ export async function waitUntilOverlaySettled(
 
 // eslint-disable-next-line
 export type GConstructor<T = {}> = new (...args: any[]) => T;
+
+// wait for a downloaded file whose name is only known at runtime, it returns its full path
+export async function waitOnNewFile(
+  action: () => Promise<void>,
+  folder: string,
+  prefix: string
+): Promise<string> {
+  fs.mkdirSync(folder, { recursive: true });
+  const previousFiles = fs.readdirSync(folder);
+
+  await action();
+
+  for (let attempt = 0; attempt < 15; attempt++) {
+    await sleep(1000);
+    const newFile = fs
+      .readdirSync(folder)
+      .find((file) => file.startsWith(prefix) && !previousFiles.includes(file));
+    if (newFile) return path.join(folder, newFile);
+  }
+
+  throw new Error(`No new "${prefix}" file found in ${folder}`);
+}
 
 export async function waitOnFile(filePath: string): Promise<void> {
   const opts = {

@@ -36,6 +36,7 @@ export interface IProductTestStrategy {
   setupWholeDiskForHome(): void;
   configureBootDevice(): void;
   verifyAppearanceChanges?(): void;
+  showConfiguration?(): void;
 }
 
 export class ProductStrategyFactory {
